@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Redis Cluster for caching and session storage
+  redis-node-1:
+    image: redis:7-alpine
+    command: redis-server --port 7001
+    ports:
+      - "7001:7001"
+
+  redis-node-2:
+    image: redis:7-alpine
+    command: redis-server --port 7002
+    ports:
+      - "7002:7002"
+
+  redis-node-3:
+    image: redis:7-alpine
+    command: redis-server --port 7003
+    ports:
+      - "7003:7003"
+
+  # Backend Django Application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_URL=redis://redis-node-1:7001
+      - CELERY_BROKER_URL=redis://redis-node-1:7001
+      - CELERY_RESULT_BACKEND=redis://redis-node-1:7001
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    command: python manage.py runserver 0.0.0.0:8000
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+    command: npm start
+
+volumes:
+  postgres_data:

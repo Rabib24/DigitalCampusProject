@@ -1,0 +1,166 @@
+IUB Digital Campus - Required Web Pages List
+============================================
+
+Based on the project planning documents, here is a comprehensive list of pages that need to be created for the complete digital campus website:
+
+1. AUTHENTICATION PAGES [COMPLETED]
+=======================
+1.1. Login Page [COMPLETED]
+1.2. Registration Page (University email only) [COMPLETED]
+1.3. Password Reset Page [COMPLETED]
+1.4. Multi-factor Authentication Page [COMPLETED]
+1.5. SSO Integration Page [COMPLETED]
+
+2. USER DASHBOARD PAGES
+=======================
+2.1. Student Dashboard
+2.2. Faculty Dashboard
+2.3. Advisor Dashboard
+2.4. Department Admin Dashboard
+2.5. Library Staff Dashboard
+2.6. IT/Platform Admin Dashboard
+
+3. PROFILE PAGES
+================
+3.1. User Profile Page
+3.2. "My IUBian" Card Page
+3.3. Emergency Contact Management Page
+3.4. Privacy Settings Page
+3.5. Notification Preferences Page
+
+4. ACADEMIC PAGES
+=================
+4.1. Course Catalog Page
+4.2. Course Details Page
+4.3. Course Syllabus Page
+4.4. Course Notes Page
+4.5. Course Assignments Page
+4.6. Course Gradebook Page
+4.7. Course Discussion Forum Page
+4.8. Class Recording Page
+4.9. Attendance Tracking Page
+4.10. Academic Transcript Page
+4.11. Degree Planning Page
+4.12. CGPA Calculator Page
+4.13. Retake Recommendation Page
+
+5. ASSIGNMENT & GRADING PAGES
+=============================
+5.1. Assignment Submission Page
+5.2. Assignment Details Page
+5.3. Grading Page (for faculty)
+5.4. Plagiarism Report Page
+5.5. Submission History Page
+
+6. ADVISING PAGES
+=================
+6.1. Advisee List Page
+6.2. Advisee Progress Tracking Page
+6.3. Appointment Scheduling Page
+6.4. CGPA Simulator Page
+6.5. Milestone Reminder Page
+
+7. LIBRARY PAGES
+================
+7.1. Book Catalog Search Page
+7.2. Book Details Page
+7.3. Loan Management Page
+7.4. Borrowing History Page
+7.5. Digital Resources Page
+7.6. Library Analytics Page
+
+8. RESEARCH PAGES
+=================
+8.1. Research Project List Page
+8.2. Research Project Details Page
+8.3. Project Proposal Submission Page
+8.4. Grant Application Page
+8.5. Publication Management Page
+8.6. Ethics Approval Page
+
+9. CAMPUS LIFE PAGES
+====================
+9.1. Clubs & Societies Portal Page
+9.2. Club Details Page
+9.3. Event Management Page
+9.4. Membership Management Page
+9.5. Funding Request Page
+9.6. Skill Competitions Page
+9.7. Hackathon Registration Page
+9.8. Leaderboard Page
+9.9. Student-created Features Gallery Page
+9.10. Blog Platform Page
+9.11. Podcast Platform Page
+
+10. FINANCE PAGES
+=================
+10.1. Tuition Payment Page
+10.2. Invoice Management Page
+10.3. Scholarship Application Page
+10.4. Financial Aid Tracking Page
+10.5. Billing History Page
+
+11. COMMUNICATION PAGES
+=======================
+11.1. Announcement List Page
+11.2. Announcement Creation Page
+11.3. Notification Center Page
+11.4. Chat/Messaging Page
+11.5. Discussion Forum Page
+11.6. Poll Creation Page
+
+12. EMERGENCY & SAFETY PAGES
+============================
+12.1. Emergency Alert Dashboard
+12.2. Panic Button Interface
+12.3. Mass Alert System Page
+12.4. Emergency Contact Directory Page
+12.5. Incident Log Page
+12.6. Drill Simulation Page
+
+13. ADMINISTRATION PAGES
+========================
+13.1. Department Course Management Page
+13.2. Timetable Management Page
+13.3. Budget Management Page
+13.4. Staff Request Management Page
+13.5. Document Management Page
+13.6. User Provisioning Page
+13.7. Security Settings Page
+13.8. Backup Management Page
+13.9. System Logs Page
+13.10. Integration Management Page
+
+14. ANALYTICS & REPORTING PAGES
+===============================
+14.1. Enrollment Trends Dashboard
+14.2. Course Utilization Report Page
+14.3. Attendance Analytics Page
+14.4. Library Usage Analytics Page
+14.5. Research Output Dashboard
+14.6. Academic Performance Report Page
+
+15. MODERATION PAGES
+====================
+15.1. Content Moderation Dashboard
+15.2. Flagged Content Review Page
+15.3. Consent Log Management Page
+15.4. Audit Trail Page
+
+16. MOBILE-SPECIFIC PAGES
+=========================
+16.1. Mobile Dashboard
+16.2. Offline Mode Interface
+16.3. Mobile Emergency Interface
+16.4. Mobile Notification Page
+
+17. SUPPORT PAGES
+=================
+17.1. Help Center Page
+17.2. Accessibility Settings Page
+17.3. FAQ Page
+17.4. Contact Support Page
+
+Total Pages: 74
+
+Note: This count includes main pages and sub-pages. Some pages may have multiple variants based on user roles (e.g., different dashboards for different user types).

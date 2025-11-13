@@ -1,0 +1,461 @@
+Digital Campus Platform - Models Planning Document
+=================================================
+
+This document outlines the core data models needed for the IUB Digital Campus Project.
+
+1. BASE USER MODEL
+=================
+Fields:
+- id (string, unique identifier)
+- username (string, unique)
+- email (string, unique)
+- firstName (string)
+- lastName (string)
+- role (string: student, faculty, admin, staff)
+- status (string: active, inactive, suspended)
+- createdAt (date)
+- lastLogin (date)
+- profile (object: avatar, bio, contact info)
+- preferences (array: dashboard settings, notification preferences)
+- phoneNumber (string)
+- address (object: street, city, state, zip)
+- dateOfBirth (date)
+- emergencyContact (object: name, relationship, phone)
+- ssoId (string: for single sign-on integration)
+- mfaEnabled (boolean: for multi-factor authentication)
+- lastPasswordChange (date)
+- failedLoginAttempts (number)
+- lockedUntil (date)
+
+Methods:
+- getFullName()
+- updateLastLogin()
+- updatePreferences(preferences)
+- hasRole(role)
+- isAdmin()
+- isActive()
+- deactivate()
+- suspend()
+- getDashboardWidgets()
+- getPermissions()
+- toJSON()
+- fromJSON()
+
+2. STUDENT MODEL (extends User)
+==============================
+Fields:
+- studentId (string)
+- enrollments (array: course enrollment references)
+- courses (array: courses taken)
+- currentCourses (array: currently registered courses)
+- completedCourses (array: completed courses with grades)
+- financialAid (array: financial aid records)
+- billingInfo (object: payment methods, billing history)
+- housingApplication (object: housing preferences, status)
+- mealPlan (object: current plan, balance)
+- academicRecords (array: transcripts, degrees)
+- degreeProgram (string)
+- advisorId (string: reference to faculty User)
+- graduationDate (date)
+- cumulativeGPA (number)
+- libraryBooks (array: borrowed library books)
+- libraryFines (number)
+- libraryCardNumber (string)
+
+Methods:
+- addEnrollment(enrollment)
+- addCourse(course)
+- calculateGPA()
+- toJSON()
+- fromJSON()
+
+3. FACULTY MODEL (extends User)
+==============================
+Fields:
+- employeeId (string)
+- department (string)
+- courses (array: courses taught)
+- researchProjects (array)
+- officeHours (array: time slots)
+- officeLocation (string)
+- title (string: Professor, Associate Professor, etc.)
+- hireDate (date)
+- publications (array)
+
+Methods:
+- addCourse(course)
+- getTeachingSchedule()
+- toJSON()
+- fromJSON()
+
+4. ADMIN MODEL (extends User)
+============================
+Fields:
+- employeeId (string)
+- department (string)
+- permissions (array: system permissions)
+- hireDate (date)
+
+Methods:
+- toJSON()
+- fromJSON()
+
+5. STAFF MODEL (extends User)
+============================
+Fields:
+- employeeId (string)
+- department (string)
+- hireDate (date)
+- supervisorId (string: reference to admin User)
+
+Methods:
+- toJSON()
+- fromJSON()
+
+6. COURSE MODEL
+===============
+Fields:
+- id (string, unique identifier)
+- code (string, e.g., "CS101")
+- name (string)
+- description (string)
+- credits (number)
+- instructorId (string, reference to User)
+- schedule (array: time slots, locations)
+- students (array: student IDs)
+- assignments (array: assignment references)
+- createdAt (date)
+- department (string)
+- prerequisites (array: course codes)
+- syllabus (string: URL or file reference)
+- textbooks (array: book references)
+- enrollmentLimit (number)
+- waitlist (array: student IDs)
+- startDate (date)
+- endDate (date)
+- gradingScale (object: grade thresholds)
+- categories (array: assignment categories)
+- materials (array: URLs or file references)
+- announcements (array: course announcements)
+
+Methods:
+- addStudent(studentId)
+- removeStudent(studentId)
+- addAssignment(assignment)
+- getStudentCount()
+- toJSON()
+- fromJSON()
+
+7. ENROLLMENT MODEL
+===================
+Fields:
+- id (string, unique identifier)
+- studentId (string, reference to User)
+- courseId (string, reference to Course)
+- enrollmentDate (date)
+- status (string: active, dropped, completed)
+- grade (string or number)
+
+Methods:
+- assignGrade(grade)
+- drop()
+- complete()
+- toJSON()
+- fromJSON()
+
+8. ASSIGNMENT MODEL
+===================
+Fields:
+- id (string, unique identifier)
+- courseId (string, reference to Course)
+- title (string)
+- description (string)
+- dueDate (date)
+- points (number)
+- type (string: homework, exam, project)
+- submissions (array: submission references)
+- createdAt (date)
+- startDate (date)
+- allowLateSubmission (boolean)
+- latePenalty (number: percentage penalty)
+- maxSubmissions (number)
+- attachments (array: file references)
+- rubric (object: grading criteria)
+- visibleToStudents (boolean)
+- category (string: for grouping)
+- weight (number: for grade calculation)
+
+Methods:
+- addSubmission(submission)
+- isOverdue()
+- toJSON()
+- fromJSON()
+
+9. SUBMISSION MODEL
+===================
+Fields:
+- id (string, unique identifier)
+- assignmentId (string, reference to Assignment)
+- studentId (string, reference to User)
+- content (string or file reference)
+- submittedAt (date)
+- grade (number)
+- feedback (string)
+- attachments (array: file references)
+- lateSubmission (boolean)
+- revisionHistory (array: previous submissions)
+
+Methods:
+- assignGrade(grade, feedback)
+- toJSON()
+- fromJSON()
+
+10. FINANCIAL AID MODEL
+====================
+Fields:
+- id (string, unique identifier)
+- studentId (string, reference to User)
+- type (string: scholarship, grant, loan, work-study)
+- amount (number)
+- status (string: applied, awarded, rejected, disbursed)
+- applicationDate (date)
+- awardDate (date)
+- disbursementSchedule (array: disbursement dates and amounts)
+- requirements (array: requirements for maintaining aid)
+- documents (array: supporting document references)
+- comments (string)
+- academicYear (string)
+
+Methods:
+- toJSON()
+- fromJSON()
+
+12. NOTIFICATION MODEL
+=====================
+Fields:
+- id (string, unique identifier)
+- userId (string, reference to User)
+- title (string)
+- message (string)
+- type (string: info, warning, error, success)
+- isRead (boolean)
+- createdAt (date)
+
+Methods:
+- markAsRead()
+- toJSON()
+- fromJSON()
+
+13. CALENDAR EVENT MODEL
+=======================
+Fields:
+- id (string, unique identifier)
+- title (string)
+- description (string)
+- startDateTime (date)
+- endDateTime (date)
+- location (string)
+- type (string: event, deadline, exam)
+- attendees (array: user IDs)
+- courseId (string, optional reference to Course)
+- createdAt (date)
+- recurrence (object: recurrence pattern)
+- reminders (array: reminder settings)
+- attachments (array: file references)
+- visibility (string: public, private, course)
+
+Methods:
+- addAttendee(userId)
+- isAllDay()
+- toJSON()
+- fromJSON()
+
+14. EMERGENCY CONTACT MODEL
+=========================
+Fields:
+- id (string, unique identifier)
+- userId (string: reference to User)
+- name (string)
+- relationship (string)
+- phone (string)
+- email (string)
+- isPrimary (boolean)
+- createdAt (date)
+- updatedAt (date)
+
+Methods:
+- toJSON()
+- fromJSON()
+
+15. GRADE MODEL
+==============
+Fields:
+- id (string, unique identifier)
+- studentId (string, reference to User)
+- courseId (string, reference to Course)
+- assignmentId (string, optional reference to Assignment)
+- value (number: points earned)
+- maxPoints (number: maximum possible points)
+- letterGrade (string: A, B, C, etc.)
+- weight (number: for GPA calculation)
+- category (string: assignment, exam, participation)
+- graderId (string, reference to User - instructor)
+- comments (string)
+- createdAt (date)
+
+Methods:
+- calculatePercentage()
+- toJSON()
+- fromJSON()
+
+16. LIBRARY BOOK MODEL
+====================
+Fields:
+- id (string, unique identifier)
+- title (string)
+- author (string)
+- isbn (string)
+- callNumber (string)
+- borrowerId (string: reference to Student User)
+- checkoutDate (date)
+- dueDate (date)
+- returnDate (date)
+- status (string: available, checkedout, overdue, reserved)
+- location (string: library section)
+- fines (number: accumulated fines)
+- renewalCount (number)
+
+Methods:
+- isOverdue()
+- calculateFines()
+- toJSON()
+- fromJSON()
+
+17. RESEARCH PROJECT MODEL
+========================
+Fields:
+- id (string, unique identifier)
+- title (string)
+- description (string)
+- ownerId (string: reference to Faculty User)
+- collaborators (array: user IDs)
+- status (string: proposal, approved, in-progress, completed, archived)
+- startDate (date)
+- endDate (date)
+- budget (number)
+- ethicsApproval (boolean)
+- publications (array: publication references)
+- documents (array: file references)
+- milestones (array: project milestones)
+- createdAt (date)
+- updatedAt (date)
+
+Methods:
+- addCollaborator(userId)
+- updateStatus(status)
+- addMilestone(milestone)
+- toJSON()
+- fromJSON()
+
+18. CAMPUS ACTIVITY MODEL
+========================
+Fields:
+- id (string, unique identifier)
+- title (string)
+- description (string)
+- type (string: club, competition, student-feature)
+- organizerId (string: reference to User)
+- participants (array: user IDs)
+- startDate (date)
+- endDate (date)
+- location (string)
+- registrationDeadline (date)
+- maxParticipants (number)
+- status (string: draft, open, closed, cancelled, completed)
+- createdAt (date)
+- updatedAt (date)
+- tags (array: string tags)
+
+Methods:
+- addParticipant(userId)
+- updateStatus(status)
+- toJSON()
+- fromJSON()
+
+19. PAYMENT MODEL
+================
+Fields:
+- id (string, unique identifier)
+- userId (string: reference to User)
+- amount (number)
+- currency (string)
+- type (string: tuition, fee, scholarship, grant)
+- status (string: pending, processing, completed, failed, refunded)
+- paymentMethod (string: gateway reference)
+- transactionId (string)
+- description (string)
+- dueDate (date)
+- paidDate (date)
+- createdAt (date)
+- updatedAt (date)
+
+Methods:
+- updateStatus(status)
+- processPayment()
+- toJSON()
+- fromJSON()
+
+20. ALERT MODEL
+===============
+Fields:
+- id (string, unique identifier)
+- title (string)
+- message (string)
+- type (string: emergency, announcement, notification)
+- priority (string: low, medium, high, urgent)
+- audience (string: campus, department, course, individual)
+- audienceIds (array: specific user/course/department IDs)
+- channels (array: email, sms, push, display)
+- scheduledAt (date)
+- sentAt (date)
+- status (string: draft, scheduled, sending, sent, failed)
+- createdBy (string: reference to User)
+- createdAt (date)
+- updatedAt (date)
+
+Methods:
+- schedule(scheduledAt)
+- send()
+- toJSON()
+- fromJSON()
+
+Relationships:
+- Base User model is extended by Student, Faculty, Admin, and Staff models
+- Students enroll in courses
+- Courses have instructors (faculty)
+- Courses contain assignments
+- Students submit assignments
+- Assignments receive grades
+- Grades contribute to overall course grades
+- Users receive notifications
+- Events can be associated with courses or users
+- Enrollments track student progress in courses
+- Students apply for financial aid
+- Students borrow library books
+- Users have emergency contacts
+- Students participate in campus activities
+- Faculty manage research projects
+
+This model structure supports all the core features of the digital campus platform including:
+- User authentication and role management
+- Course registration and management
+- Assignment distribution and submission
+- Grade tracking and GPA calculation
+- Communication through notifications
+- Calendar and scheduling
+- Dashboard personalization
+- Financial aid tracking
+- Library management
+- Emergency contact management
+- Campus activity participation
+- Research project management

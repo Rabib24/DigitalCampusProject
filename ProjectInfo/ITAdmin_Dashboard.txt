@@ -1,0 +1,377 @@
+IUB Digital Campus - IT Admin (Main Controller) Dashboard Specification
+======================================================================
+
+1. GOAL
+=======
+The IT Admin (Main Controller) Dashboard is the central hub for IT personnel to manage user provisioning, security, backups, logs, and system integrations. It provides a comprehensive, role-based interface that allows IT admins to:
+- Provision and manage user accounts across the entire system
+- Monitor and maintain system security
+- Manage data backups and recovery procedures
+- Analyze system logs and performance metrics
+- Handle system integrations with external services
+- Select advisors for students
+- Monitor overall system health and performance
+- Respond to technical incidents and issues
+
+The dashboard serves as the "Main Controller" for the entire digital campus platform, ensuring the stability, security, and performance of all system components. It emphasizes the critical role of IT admins in user provisioning and advisor selection.
+
+2. FEATURES
+===========
+2.1. Core IT Management Features
+--------------------------------
+- User provisioning and account management (system-wide)
+- Security monitoring and threat detection
+- Data backup and recovery management
+- System log analysis and monitoring
+- Integration management with external services
+- Advisor selection and assignment for students
+- System performance monitoring
+- Incident response and management
+
+2.2. Security & Compliance Features
+----------------------------------
+- Authentication system management
+- Access control and permissions management
+- Encryption key management
+- Security audit and compliance reporting
+- Vulnerability scanning and assessment
+- Intrusion detection and prevention
+- Data privacy controls and consent management
+- Regulatory compliance monitoring
+
+2.3. Infrastructure Management Features
+--------------------------------------
+- Server and infrastructure monitoring
+- Network performance monitoring
+- Database management and optimization
+- Application performance monitoring
+- Cloud resource management
+- Container orchestration (Docker)
+- Load balancing and scaling management
+- Disaster recovery planning and execution
+
+2.4. Analytics & Reporting Features
+----------------------------------
+- System health analytics
+- Performance metrics and dashboards
+- Usage statistics and trends
+- Security incident reporting
+- Compliance audit reports
+- Resource utilization analytics
+- User activity analytics
+- System reliability metrics
+
+2.5. Communication & Collaboration Features
+------------------------------------------
+- Technical support ticketing system
+- Inter-departmental communication tools
+- Vendor and partner communication
+- Emergency notification system
+- Status update broadcasting
+- Maintenance scheduling and communication
+
+2.6. Administrative Features
+----------------------------
+- System configuration management
+- Software deployment and updates
+- License and subscription management
+- Documentation and knowledge base
+- Training and onboarding tools
+- Audit trail for all system activities
+
+3. PAGE NAMES
+=============
+The IT Admin Dashboard includes or links to the following pages:
+
+3.1. Dashboard Pages
+--------------------
+- IT Admin Dashboard (Main)
+- System Health Dashboard
+- Security Dashboard
+- Notifications Page
+- Announcements Page
+
+3.2. User Management Pages
+--------------------------
+- User Provisioning Page
+- User Account Management Page
+- Advisor Selection Page
+- Role Management Page
+- Permission Management Page
+- Access Control Page
+
+3.3. Security Management Pages
+------------------------------
+- Security Settings Page
+- Authentication Management Page
+- Encryption Management Page
+- Threat Detection Page
+- Vulnerability Assessment Page
+- Compliance Monitoring Page
+- Privacy Controls Page
+
+3.4. Infrastructure Management Pages
+------------------------------------
+- Server Monitoring Page
+- Network Monitoring Page
+- Database Management Page
+- Application Performance Page
+- Cloud Resource Management Page
+- Container Orchestration Page
+- Load Balancing Page
+
+3.5. Backup & Recovery Pages
+----------------------------
+- Backup Management Page
+- Recovery Procedures Page
+- Disaster Recovery Page
+- Data Archival Page
+
+3.6. Log & Analytics Pages
+--------------------------
+- System Logs Page
+- Performance Analytics Page
+- Security Logs Page
+- Usage Statistics Page
+- Audit Trail Page
+- Incident Reports Page
+
+3.7. Integration Management Pages
+---------------------------------
+- Integration Management Page
+- API Management Page
+- Third-party Service Management Page
+- Data Synchronization Page
+
+3.8. Communication Pages
+------------------------
+- Support Ticketing Page
+- Chat/Messaging Page
+- Notification Center Page
+- Status Broadcasting Page
+- Maintenance Scheduling Page
+
+3.9. Administrative Pages
+-------------------------
+- System Configuration Page
+- Software Deployment Page
+- License Management Page
+- Documentation Page
+- Training Resources Page
+
+3.10. Profile Pages
+------------------
+- User Profile Page
+- "My IUBian" Card Page
+- Emergency Contact Management Page
+- Privacy Settings Page
+- Notification Preferences Page
+
+3.11. Mobile-Specific Pages
+--------------------------
+- Mobile Dashboard
+- Mobile Notification Page
+- Mobile Incident Response Page
+
+4. COMPONENTS NEEDED
+====================
+4.1. Common Components (Shared with all users)
+------------------------------------------------
+- Login Form
+- Registration Form
+- Password Reset Form
+- SSO Integration Component
+- MFA Verification Component
+- Main Navigation Menu
+- User Profile Dropdown
+- Notification Bell/Panel
+- Search Bar
+- Breadcrumb Navigation
+- Buttons (Primary, Secondary, Danger, etc.)
+- Form Inputs (Text, Email, Password, Select, etc.)
+- Modal/Dialog Component
+- Toast Notification Component
+- Loading Spinner
+- Data Tables
+- Pagination Controls
+- Cards/Tile Components
+- Tabs Component
+- Accordion Component
+- Global Announcement Banner
+- In-App Notification System
+- Chat Widget (minimized state)
+- Language Selector
+- Contrast Mode Toggle
+- Text Size Adjuster
+- Screen Reader Helper
+
+4.2. IT Admin-Specific Components
+--------------------------------
+- System Health Widget
+- Security Monitoring Component
+- User Provisioning Component
+- Advisor Selection Component
+- Backup Management Component
+- Log Analysis Component
+- Integration Management Component
+- Incident Management Component
+- Performance Analytics Dashboard
+- Report Generator (IT-specific)
+- Access Control Management
+- Authentication Management
+
+4.3. Mobile Components
+----------------------
+- Bottom Navigation Bar
+- Hamburger Menu
+- Quick Action Buttons
+- Push Notification Handler
+- Mobile Incident Response Component
+
+5. FUNCTIONS TO AVOID ON MOBILE (FOR OPTIMIZED PERFORMANCE)
+===========================================================
+To ensure optimal performance on mobile devices and maintain security for critical administrative functions, the following functions should be limited or avoided on mobile:
+
+5.1. Resource-Intensive Features
+--------------------------------
+- Real-time system health analytics with complex visualizations
+- Large log file analysis and rendering
+- Complex report generation (should be deferred to desktop)
+- Bulk user provisioning operations
+- Simultaneous multiple system transactions
+- Infrastructure monitoring dashboards
+
+5.2. Bandwidth-Heavy Features
+-----------------------------
+- High-frequency polling for system notifications (should use push notifications)
+- Automatic loading of large system datasets
+- Background synchronization of extensive log data
+- Real-time collaborative editing of system configurations
+
+5.3. Processing-Intensive Features
+----------------------------------
+- Advanced data visualization rendering
+- Machine learning-based threat detection
+- Real-time chat translation services
+- Complex system optimization algorithms
+
+5.4. Security-Sensitive Features (Must be done on PC)
+----------------------------------------------------
+- User provisioning and account management (system-wide critical function)
+- Advisor selection for students (critical academic function)
+- Security settings modification
+- System backup and recovery operations
+- Access control configuration
+- Authentication system management
+- Encryption key management
+- System integration modifications
+- Disaster recovery procedures
+- Audit trail management
+
+6. IMPORTANT MISSING FEATURES (RECOMMENDATIONS)
+==============================================
+Based on analysis of IT admin needs and current trends in system administration, the following features should be considered for inclusion:
+
+6.1. Automation & Orchestration Features
+---------------------------------------
+- Automated provisioning workflows
+- Self-service password reset and account management
+- Automated scaling and load balancing
+- Script and playbook execution
+- Configuration management automation
+- Continuous integration/deployment pipelines
+- Automated security patching
+
+6.2. Advanced Monitoring & Analytics Features
+--------------------------------------------
+- Predictive failure analysis
+- Machine learning-based anomaly detection
+- Real-time performance optimization
+- Capacity planning tools
+- Root cause analysis capabilities
+- Business service monitoring
+- User experience monitoring
+
+6.3. Security Enhancement Features
+----------------------------------
+- Zero-trust security implementation
+- Advanced threat intelligence integration
+- Behavioral analytics for user activity
+- Automated incident response workflows
+- Security orchestration and response (SOAR)
+- Identity and access management (IAM) enhancements
+- Privileged access management (PAM)
+
+6.4. Disaster Recovery & Business Continuity Features
+----------------------------------------------------
+- Automated failover and recovery
+- Multi-region redundancy management
+- Backup verification and testing
+- Business impact analysis tools
+- Crisis communication platforms
+- Recovery time objective (RTO) tracking
+- Recovery point objective (RPO) monitoring
+
+6.5. Vendor & Service Management Features
+----------------------------------------
+- Vendor performance monitoring
+- Service level agreement (SLA) tracking
+- Contract management system
+- Vendor risk assessment tools
+- Third-party security assessment
+- Integration marketplace
+- API management and documentation
+
+6.6. Compliance & Governance Features
+------------------------------------
+- Regulatory compliance dashboards
+- Automated audit preparation
+- Policy management and enforcement
+- Data governance tools
+- Privacy impact assessment
+- Compliance reporting automation
+- Risk assessment and management
+
+6.7. Communication & Collaboration Features
+------------------------------------------
+- Incident management collaboration
+- Cross-functional team coordination
+- Stakeholder communication tools
+- Status page management
+- Customer feedback integration
+- Knowledge base management
+- Training and certification tracking
+
+6.8. Mobile-Specific Enhancements
+---------------------------------
+- Critical alert prioritization
+- Quick incident response actions
+- Remote system restart capabilities
+- Status update broadcasting
+- Biometric authentication (fingerprint, face recognition)
+- Dark mode for reduced battery consumption
+- Offline mode for basic monitoring
+
+7. TECHNOLOGY CONSIDERATIONS
+============================
+- Responsive design for all device sizes
+- Progressive Web App (PWA) capabilities for offline access (limited functions)
+- Push notifications for critical system alerts
+- Cloud synchronization for seamless experience across devices
+- Performance optimization for low-bandwidth scenarios
+- Enterprise-grade security measures for sensitive system data
+- Compliance with accessibility standards (WCAG)
+- Integration with IT service management (ITSM) platforms
+
+8. SUCCESS METRICS FOR IT ADMIN DASHBOARD
+========================================
+- System uptime and availability
+- Incident response time
+- Security threat detection rate
+- User provisioning efficiency
+- Backup success rate
+- System performance metrics
+- User satisfaction scores
+- Feature adoption rates
+- Support ticket resolution time
+- Mobile vs. desktop usage patterns

@@ -1,0 +1,275 @@
+IUB Digital Campus - Environment Variables Implementation Guide
+==============================================================
+
+This guide explains how to obtain the values for all environment variables used in the project.
+
+1. DJANGO SETTINGS
+==================
+
+1.1. SECRET_KEY
+---------------
+- Generate a new secret key using Django's built-in function:
+  ```python
+  from django.core.management.utils import get_random_secret_key
+  print(get_random_secret_key())
+  ```
+- Or use an online Django secret key generator
+- Keep this value secure and never share it publicly
+
+1.2. ALLOWED_HOSTS
+------------------
+- Set to your domain names or IP addresses that should be allowed to access the application
+- For development: localhost,127.0.0.1
+- For production: your actual domain names
+
+2. DATABASE CONFIGURATION
+=========================
+
+2.1. DB Configuration (PostgreSQL)
+----------------------------------
+- DB_NAME: Name of your PostgreSQL database (create a new one)
+- DB_USER: PostgreSQL username (default is 'postgres')
+- DB_PASSWORD: Password for the PostgreSQL user
+- DB_HOST: Database server host (localhost for local development)
+- DB_PORT: PostgreSQL port (default is 5432)
+
+To set up PostgreSQL:
+1. Download and install PostgreSQL from https://www.postgresql.org/download/
+2. Create a new database:
+   ```sql
+   CREATE DATABASE DigitalCampus;
+   ```
+3. Create a user:
+   ```sql
+   CREATE USER iub_user WITH PASSWORD 'your-password';
+   GRANT ALL PRIVILEGES ON DATABASE iub_digital_campus TO iub_user;
+   ```
+
+3. REDIS CONFIGURATION
+======================
+
+3.1. REDIS_URL
+--------------
+- Install Redis locally: https://redis.io/download/
+- Default URL for local development: redis://localhost:6379/0
+- For production, consider using Redis cloud services like:
+  - AWS ElastiCache
+  - Redis Labs
+  - Heroku Redis
+
+4. EMAIL CONFIGURATION
+======================
+
+4.1. SendGrid (Recommended)
+---------------------------
+1. Go to https://sendgrid.com/
+2. Sign up for a free account
+3. Navigate to Settings > API Keys
+4. Create a new API key with "Mail Send" permissions
+5. Copy the API key and use it as EMAIL_HOST_PASSWORD
+6. EMAIL_HOST_USER should be "apikey"
+
+Alternative: Gmail SMTP
+- EMAIL_HOST: smtp.gmail.com
+- EMAIL_PORT: 587
+- EMAIL_USE_TLS: True
+- EMAIL_HOST_USER: your-gmail-address@gmail.com
+- EMAIL_HOST_PASSWORD: your-app-password (not regular password)
+
+To generate Gmail app password:
+1. Enable 2-factor authentication on your Google account
+2. Go to Google Account settings > Security > App passwords
+3. Generate a new app password for "Mail"
+
+5. CLOUD STORAGE ALTERNATIVES
+===========================
+
+5.1. Simpler Alternatives to AWS/Azure
+------------------------------------
+
+Option 1: Cloudinary (Recommended for simplicity)
+1. Go to https://cloudinary.com/ and sign up for a free account
+2. Navigate to Dashboard to find your Cloud Name, API Key, and API Secret
+3. These values can be used directly in your environment variables
+
+Option 2: Firebase Storage
+1. Go to https://firebase.google.com/ and create a project
+2. Navigate to Storage and enable it
+3. Go to Project Settings > General to find your Web API Key
+4. Go to Project Settings > Service Accounts to generate a private key
+
+Option 3: Google Cloud Storage
+1. Go to https://cloud.google.com/storage/ and create a Google Cloud account
+2. Create a new project
+3. Enable the Cloud Storage API
+4. Create a service account and download the JSON key file
+5. Create a storage bucket
+
+Option 4: Local Storage (Development Only)
+- For development purposes, you can store files locally
+- Set MEDIA_ROOT to a directory on your local machine
+- Set MEDIA_URL to the URL path for accessing media files
+
+Variables for each option:
+
+Cloudinary:
+- CLOUDINARY_CLOUD_NAME: Your Cloudinary cloud name
+- CLOUDINARY_API_KEY: Your Cloudinary API key
+- CLOUDINARY_API_SECRET: Your Cloudinary API secret
+
+Firebase:
+- FIREBASE_API_KEY: Your Firebase Web API Key
+- FIREBASE_AUTH_DOMAIN: Your project's auth domain
+- FIREBASE_STORAGE_BUCKET: Your Firebase storage bucket
+
+Google Cloud Storage:
+- GOOGLE_CLOUD_PROJECT: Your Google Cloud project ID
+- GOOGLE_CLOUD_STORAGE_BUCKET: Your storage bucket name
+- GOOGLE_APPLICATION_CREDENTIALS: Path to your service account JSON file
+
+6. SEARCH ENGINE ALTERNATIVES
+============================
+
+6.1. Search Service Options
+--------------------------
+
+Option 1: Algolia (Recommended for simplicity)
+1. Go to https://www.algolia.com/ and sign up for a free account
+2. Create a new application
+3. Navigate to API Keys to find your Application ID and API Keys
+4. The free plan supports up to 10,000 records and 100,000 operations per month
+
+Option 2: Typesense (Open-source alternative)
+1. Go to https://typesense.org/ and follow installation instructions
+2. For local development, you can run it with Docker:
+   docker run -p 8108:8108 -v/tmp/typesense-data:/data typesense/typesense:0.22.2 --data-dir /data --api-key=xyz --listen-port 8108 --enable-cors
+3. Use "xyz" as your API key for development
+
+Variables for each option:
+
+Algolia:
+- ALGOLIA_APPLICATION_ID: Your Algolia Application ID
+- ALGOLIA_SEARCH_API_KEY: Your Algolia Search-only API Key
+- ALGOLIA_ADMIN_API_KEY: Your Algolia Admin API Key
+
+Typesense:
+- TYPESENSE_API_KEY: Your Typesense API key
+- TYPESENSE_HOST: Usually localhost for local development
+- TYPESENSE_PORT: Usually 8108
+- TYPESENSE_PROTOCOL: http for local development
+
+8. PAYMENT GATEWAY ALTERNATIVES
+==============================
+
+8.1. Payment Service Options
+---------------------------
+
+Option 1: PayPal (Widely recognized)
+1. Go to https://developer.paypal.com/ and create a developer account
+2. Navigate to My Apps & Credentials
+3. Create a new REST API app
+4. Copy the Client ID and Secret for either Sandbox or Live
+
+Option 2: Razorpay (Popular in India and other regions)
+1. Go to https://razorpay.com/ and sign up
+2. Complete business verification
+3. Navigate to Settings > API Keys
+4. Generate and copy your API keys
+
+Variables for each option:
+
+PayPal:
+- PAYPAL_CLIENT_ID: Your PayPal client ID
+- PAYPAL_CLIENT_SECRET: Your PayPal client secret
+- PAYPAL_MODE: sandbox for testing, live for production
+
+Razorpay:
+- RAZORPAY_KEY_ID: Your Razorpay key ID
+- RAZORPAY_KEY_SECRET: Your Razorpay key secret
+
+9. JWT AUTHENTICATION
+=====================
+
+9.1. JWT_SECRET_KEY
+-------------------
+- Generate a random string for JWT signing
+- Use a password generator or:
+  ```python
+  import secrets
+  print(secrets.token_urlsafe(32))
+  ```
+
+11. OPENAI (FOR CHATBOT)
+=======================
+
+11.1. Setting up OpenAI
+----------------------
+1. Go to https://platform.openai.com/
+2. Sign up for an account
+3. Navigate to API Keys
+4. Create a new secret key
+5. Copy the key as OPENAI_API_KEY
+
+12. GOOGLE ANALYTICS
+====================
+
+12.1. Setting up Google Analytics
+---------------------------------
+1. Go to https://analytics.google.com/
+2. Sign up for an account
+3. Set up a new property for your website
+4. Get the Measurement ID (starts with "G-")
+5. Use it as GOOGLE_ANALYTICS_ID
+
+13. SECURITY CONSIDERATIONS
+===========================
+
+13.1. Environment File Security
+-------------------------------
+- Never commit .env files to version control
+- Add .env to .gitignore
+- Use different .env files for different environments:
+  - .env.development
+  - .env.staging
+  - .env.production
+
+13.2. Key Management Best Practices
+-----------------------------------
+- Rotate API keys regularly
+- Use least privilege principle for service accounts
+- Store secrets in secure vaults for production (HashiCorp Vault)
+- Use environment-specific keys (don't reuse keys across environments)
+
+14. DEVELOPMENT WORKFLOW
+========================
+
+14.1. Local Development Setup
+-----------------------------
+1. Copy .env.example to .env
+2. Fill in all the required values as per this guide
+3. Start the development server
+
+14.2. Production Deployment
+---------------------------
+1. Set environment variables in your hosting platform:
+   - Heroku: Settings > Config Vars
+   - Google App Engine: app.yaml or Google Cloud Console
+   - DigitalOcean App Platform: Settings > Environment Variables
+2. Never store secrets in code repositories
+
+15. TROUBLESHOOTING
+==================
+
+15.1. Common Issues
+-------------------
+- "Environment variable not found": Check that the variable is defined in .env
+- "Permission denied": Check that API keys have the correct permissions
+- "Connection refused": Check that services are running and URLs are correct
+
+15.2. Verification Steps
+------------------------
+1. Check that all required variables are present
+2. Verify that API keys work by testing endpoints
+3. Confirm database connection with a simple query
+4. Test email sending with a test message
+5. Validate payment processing with a test transaction

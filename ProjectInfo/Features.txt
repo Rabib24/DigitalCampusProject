@@ -1,0 +1,250 @@
+Features Planning :
+
+1 — Vision & guiding principles
+Single secure campus hub that uses university email (abc@iub.edu.bd) for identity and invites, but supports delegated apps via SSO.
+
+
+Role-first UX — each persona sees only what they need (student, faculty, advisor, library staff, dept admin, finance, researcher, IT, alumni).
+
+
+Faculty-controlled teaching — faculty keep control of recordings, content publishing, grading and sharing.
+
+
+Privacy & safety by default — consent flows, opt-ins for sharing recordings or personal profiles, audit trails.
+
+
+Offline modes for many students.
+
+
+Student empowerment & recognition — portfolio, competitions, student-created features.
+
+
+
+2 — Primary personas & responsibilities
+Student: view dashboard, enroll, access notes & recordings (as allowed), chat advisor, form applications, join clubs, search library, submit assignments.
+
+
+Faculty: create/record classes, share notes, grade, create announcements, manage research records, approve student requests.
+
+
+Advisor: view advisee academic progress, chat/meet scheduling, recommend retakes.
+
+
+Department Admin: manage departmental courses, timetables, budgets, staff requests.
+
+
+Library Staff: manage book inventory, loans, search analytics, digital resources.
+
+
+Finance/Admin: invoicing, scholarships, internal bills, grants.
+
+
+Research Admin: approve projects, manage ethics, grants and publications.
+
+
+IT / Platform Admin: user provisioning, security, backups, logs, integrations.
+
+
+
+
+
+3 — Feature set (grouped + options / alternate solutions)
+Core identity & access
+University-only sign up (abc@iub.edu.bd only) + automated account provisioning.
+
+
+Options for authentication:
+
+
+Primary: SSO with university mail 
+
+
+Role-based access control (RBAC) + attribute-based controls for fine-grained permissions.
+
+
+Dashboard & personalization
+Personal campus dashboard: classes, schedule, next assignment, notifications, announcements, quick links.
+
+
+Academic snapshot for students: completed courses, CGPA, suggested courses to retake, predicted graduation date, recommended electives based on interests.
+
+
+“My IUBian” card: personal profile, skills, enrolled activities, badges.
+
+
+Course & classroom tools
+Course pages like Google Classroom: syllabus, notes, assignments, gradebook, discussion.
+
+
+Class recording system:
+
+
+Faculty controls start/stop recording and sharing visibility (course-only, specific sections, or campus-wide).
+
+
+Attendance system — multiple approaches (choose one or allow hybrid):
+
+
+Synchronous tools: live chat, polls, breakout rooms; asynchronous: threads, Q&A.
+
+
+Academic advising & progression tools;
+Advisor dashboard with advisee list, recommended actions (retakes), early-warning alerts when GPA falls below thresholds.
+“What-if” CGPA simulator for retake planning.
+Mandatory milestone reminders (thesis submission, internship applications).
+Integrated appointment scheduler.
+
+
+Assignment, grading & plagiarism
+Assignment upload with versioning and time-stamped submissions.
+
+
+Plagiarism integration (Turnitin or open-source alternatives).
+
+
+
+Library & information search
+Book catalog + loan management with clear borrowing history.
+
+
+Smart search: faceted filters, fuzzy search, availability, suggested similar titles.
+
+
+Research / Grants / Publications
+Project lifecycle management: proposals → approvals → budgets → milestones → final reports.
+
+
+Campus life & student activities
+Clubs & societies portal (create/manage events, membership, funding requests).
+
+
+Skill competitions & hackathons — registration, judge scoring, leaderboard.
+
+
+Student-created features: blogs, podcasts, galleries (with moderation workflow).
+
+
+Finance & official work
+Tuition/fee payment integration with local payment gateways
+
+
+Campus-wide emergency alerts (SMS + push + email + public display).
+Department-level announcements.
+Course-specific notifications.
+
+Notification delivery channels: email, push, SMS, in-app.
+
+Emergency & campus safety
+Panic button in mobile app that sends location + prefilled message to campus security.
+
+Mass alert system (mass SMS + IVR fallback).
+
+Emergency contact directory and digital ID for responders.
+
+
+Drill simulation & incident logs.
+
+
+Analytics & reporting
+Dashboards for admin: enrollment trends, course utilization, attendance, library usage, research outputs.
+
+
+
+Moderation, governance & auditing
+Content moderation for public student content (automated filters + human review).
+
+Consent logs for recordings & data sharing.
+
+
+Accessibility & inclusion
+Screen-reader compatible UI, keyboard navigation, captions & transcripts, multilingual support (English + Bengali).
+
+
+Low-bandwidth mode: compressed media, text-first UI.
+
+
+
+
+4 — Multiple solutions to key problems (choose per campus constraints)
+Problem: Attendance accuracy vs cost & privacy
+Problem: Single sign-on for external collaborators
+Guest accounts with limited access (invite-only via email, expiration).
+
+
+
+5 — Technical architecture (high-level)
+Frontend: responsive web app + native mobile apps (React + React Native ).
+
+
+Backend:  (Node.js / Python)
+
+
+Data storage:
+Relational DB (Postgres) for structured records.
+
+Search engine (Elasticsearch / OpenSearch) for library and transcripts.
+
+
+Real-time: WebSockets / MQTT for chat, live notifications.
+
+
+Notifications: queued workers + SMS gateway + email provider + push notifications.
+
+
+
+
+6 — Data model overview (sample)
+
+
+
+
+7 — Security & privacy controls
+Encryption in transit (TLS) and at rest (AES-256).
+
+
+
+8 — MVP (Minimum Viable Product) — suggested scope
+Goal: deliver high-value capabilities fast to prove value.
+Authentication with uni mail + basic RBAC.
+
+
+Student & faculty dashboards.
+
+Course pages (syllabus, notes, assignments).
+
+Simple class recording upload and sharing controlled by faculty (manual upload to start).
+
+Announcements & notifications (email + in-app).
+
+Basic analytics: active courses, enrollment numbers.
+
+
+Admin panel for departments.
+
+MVP timeline idea: 3–6 months with a small team (2 frontend, 2 backend, 1 QA, 1 UX, 1 product manager) depending on faster approvals & integrations.
+
+
+14 — Suggested tech stack (practical)
+Frontend: React (web) + React Native (mobile) with Tailwind CSS.
+
+
+Backend: Python (Django/FastAPI).
+
+
+DB: PostgreSQL.
+
+
+Search: Elasticsearch / OpenSearch.
+
+
+
+16 — Example user flows (brief)
+Student views CGPA suggestions: logs in → Dashboard → Academic → “Retake suggestions” → Click “See recommended courses” → Book advisor appointment.
+
+
+Faculty records and shares a class: Open course → Start recording (or upload) → Choose visibility (Section A only) → Publish → System transcribes, indexes → Students notified.
+
+
+Dept admin posts announcement: Admin panel → Select announcement scope (whole campus/department) → Compose → Add priority (urgent) → Publish → sends chosen channels.
+
+

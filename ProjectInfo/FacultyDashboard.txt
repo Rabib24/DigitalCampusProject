@@ -1,0 +1,352 @@
+IUB Digital Campus - Faculty Dashboard Specification
+===================================================
+
+1. GOAL
+=======
+The Faculty Dashboard is the central hub for faculty members to manage their teaching responsibilities, research activities, and academic advising duties. It provides a personalized, role-based interface that allows faculty to:
+- Create and manage course content
+- Grade assignments and track student progress
+- Record and share class sessions
+- Communicate with students and colleagues
+- Manage research projects and publications
+- Fulfill academic advising responsibilities as student advisors
+- Access administrative tools and reports
+
+The dashboard follows the "Role-first UX" principle, showing only what faculty members need to see for an efficient and focused experience. It emphasizes "Faculty-controlled teaching" where faculty keep control of recordings, content publishing, grading, and sharing.
+
+2. FEATURES
+===========
+2.1. Core Teaching Features
+---------------------------
+- Personal campus dashboard with classes, schedule, upcoming assignments, notifications, announcements, quick links
+- Course creation and management tools
+- Course pages with syllabus, notes, assignments, gradebook, discussion forums
+- Class recording system with faculty-controlled start/stop and sharing visibility
+- Attendance tracking system
+- Assignment creation and management
+- Gradebook and grading tools
+- Plagiarism detection integration
+- Course discussion forums
+- Announcement creation and management
+
+2.2. Academic Advising Features (Faculty as Advisors)
+----------------------------------------------------
+- Advisee list with academic progress tracking
+- Academic snapshot for each advisee: completed courses, CGPA, suggested courses to retake
+- Early-warning alerts when advisee GPA falls below thresholds
+- "What-if" CGPA simulator for retake planning
+- Mandatory milestone reminders (thesis submission, internship applications)
+- Integrated appointment scheduler for student meetings
+- Retake recommendation engine
+- Academic progress tracking tools
+
+2.3. Research & Publication Features
+------------------------------------
+- Research project lifecycle management
+- Grant application tools
+- Publication management
+- Ethics approval workflow
+- Research collaboration platform
+- Research output tracking
+
+2.4. Communication Features
+---------------------------
+- Student communication tools (chat, messaging)
+- Course discussion forums
+- Announcement creation (course-specific, department-level, campus-wide)
+- Poll creation and management
+- Notification center for course updates
+
+2.5. Analytics & Reporting Features
+----------------------------------
+- Course utilization analytics
+- Student performance analytics
+- Attendance analytics
+- Research output dashboards
+- Basic analytics for active courses and enrollment numbers
+
+2.6. Administrative Features
+----------------------------
+- Department course management
+- Timetable management
+- Student request approval
+- Consent log management for recordings and data sharing
+- Audit trail access
+
+3. PAGE NAMES
+=============
+The Faculty Dashboard includes or links to the following pages:
+
+3.1. Dashboard Pages
+--------------------
+- Faculty Dashboard (Main)
+- Course List Page
+- Schedule Page
+- Notifications Page
+- Announcements Page
+
+3.2. Course Management Pages
+----------------------------
+- Course Creation Page
+- Course Details Page
+- Course Syllabus Page
+- Course Notes Page
+- Course Assignments Page
+- Course Gradebook Page
+- Course Discussion Forum Page
+- Class Recording Management Page
+- Attendance Tracking Page
+
+3.3. Assignment & Grading Pages
+-------------------------------
+- Assignment Creation Page
+- Assignment Details Page
+- Grading Page (for faculty)
+- Plagiarism Report Page
+- Submission Review Page
+
+3.4. Advising Pages (Faculty as Advisors)
+-----------------------------------------
+- Advisee List Page
+- Advisee Progress Tracking Page
+- Appointment Scheduling Page
+- CGPA Simulator Page
+- Milestone Reminder Page
+- Retake Recommendation Page
+
+3.5. Research Pages
+-------------------
+- Research Project List Page
+- Research Project Details Page
+- Project Proposal Submission Page
+- Grant Application Page
+- Publication Management Page
+- Ethics Approval Page
+
+3.6. Communication Pages
+------------------------
+- Announcement Creation Page
+- Chat/Messaging Page
+- Discussion Forum Management Page
+- Poll Creation Page
+
+3.7. Analytics & Reporting Pages
+--------------------------------
+- Course Utilization Report Page
+- Attendance Analytics Page
+- Academic Performance Report Page
+- Research Output Dashboard
+
+3.8. Profile Pages
+------------------
+- User Profile Page
+- "My IUBian" Card Page
+- Emergency Contact Management Page
+- Privacy Settings Page
+- Notification Preferences Page
+
+3.9. Administrative Pages
+-------------------------
+- Department Course Management Page
+- Timetable Management Page
+- Student Request Approval Page
+- Consent Log Management Page
+- Audit Trail Page
+
+3.10. Mobile-Specific Pages
+---------------------------
+- Mobile Dashboard
+- Mobile Notification Page
+
+4. COMPONENTS NEEDED
+====================
+4.1. Common Components (Shared with all users)
+------------------------------------------------
+- Login Form
+- Registration Form
+- Password Reset Form
+- SSO Integration Component
+- MFA Verification Component
+- Main Navigation Menu
+- User Profile Dropdown
+- Notification Bell/Panel
+- Search Bar
+- Breadcrumb Navigation
+- Buttons (Primary, Secondary, Danger, etc.)
+- Form Inputs (Text, Email, Password, Select, etc.)
+- Modal/Dialog Component
+- Toast Notification Component
+- Loading Spinner
+- Data Tables
+- Pagination Controls
+- Cards/Tile Components
+- Tabs Component
+- Accordion Component
+- Global Announcement Banner
+- In-App Notification System
+- Chat Widget (minimized state)
+- Language Selector
+- Contrast Mode Toggle
+- Text Size Adjuster
+- Screen Reader Helper
+
+4.2. Faculty-Specific Components
+--------------------------------
+- Course Management Widget
+- Assignment List (faculty view)
+- Gradebook (faculty view)
+- Class Recording Controls
+- Announcement Creation Form
+- Advisee List Widget
+- Research Project Widget
+- Analytics Dashboard
+- Report Generator
+- What-if Scenario Planner (for advising)
+- Appointment Scheduler (for advising)
+- Project Proposal Form
+- Grant Application Form
+- Publication Manager
+- Consent Log Management
+
+4.3. Mobile Components
+----------------------
+- Bottom Navigation Bar
+- Hamburger Menu
+- Quick Action Buttons
+- Push Notification Handler
+
+5. FUNCTIONS TO AVOID ON MOBILE (FOR OPTIMIZED PERFORMANCE)
+===========================================================
+To ensure optimal performance on mobile devices, the following functions should be limited or modified:
+
+5.1. Resource-Intensive Features
+--------------------------------
+- Real-time analytics dashboard with complex visualizations
+- High-resolution video recording and editing
+- Large data table rendering (should use pagination and virtual scrolling)
+- Complex report generation (should be deferred to desktop)
+- Simultaneous multiple live video streams for recording
+
+5.2. Bandwidth-Heavy Features
+-----------------------------
+- Auto-uploading of large course materials
+- Real-time collaborative document editing
+- High-frequency polling for notifications (should use push notifications)
+- Automatic loading of all course content at once
+- Background synchronization of large datasets
+
+5.3. Processing-Intensive Features
+----------------------------------
+- Complex search algorithms with multiple filters
+- Real-time plagiarism checking
+- Advanced data visualization rendering
+- Machine learning-based recommendation engines
+- Real-time chat translation services
+
+5.4. Memory-Intensive Features
+------------------------------
+- Caching large amounts of course content
+- Storing multiple high-resolution images
+- Keeping extensive chat history in memory
+- Multiple simultaneous file uploads/downloads
+
+6. IMPORTANT MISSING FEATURES (RECOMMENDATIONS)
+==============================================
+Based on analysis of faculty needs and current trends in educational technology, the following features should be considered for inclusion:
+
+6.1. Teaching Enhancement Features
+----------------------------------
+- Interactive presentation tools with real-time polling
+- Automated quiz generation from course content
+- Learning analytics dashboard with student engagement metrics
+- Peer review and collaboration tools for faculty
+- Template library for common course materials
+- Integration with external educational resources
+
+6.2. Professional Development Features
+--------------------------------------
+- Faculty mentorship program matching
+- Conference and workshop notification system
+- Continuing education tracking
+- Teaching certification management
+- Peer observation scheduling and feedback
+- Best practices sharing platform
+
+6.3. Research Enhancement Features
+----------------------------------
+- Research collaboration networking tools
+- Citation management and integration
+- Data analysis and visualization tools
+- Research funding opportunity alerts
+- Collaboration with external institutions
+- Intellectual property management
+
+6.4. Student Engagement Features
+--------------------------------
+- Student performance prediction tools
+- Personalized learning path recommendations for students
+- Early intervention alert system
+- Student feedback collection and analysis
+- Gamification elements for course engagement
+- Peer-to-peer learning facilitation tools
+
+6.5. Administrative Efficiency Features
+---------------------------------------
+- Automated grading for objective questions
+- Bulk operations for common tasks
+- Integration with external systems (library, finance, etc.)
+- Workflow automation for routine approvals
+- Digital signature capabilities for documents
+- Time tracking and reporting tools
+
+6.6. Communication & Collaboration Features
+-------------------------------------------
+- Video conferencing integration
+- Discussion board enhancement tools
+- Social learning features for faculty communities
+- Cross-departmental collaboration platforms
+- Alumni networking for career guidance
+- Parent/guardian communication tools (where applicable)
+
+6.7. Accessibility & Inclusion Features
+--------------------------------------
+- Universal design for learning (UDL) tools
+- Multi-language support for diverse student populations
+- Assistive technology integration
+- Inclusive assessment tools
+- Cultural sensitivity resources
+- Flexible content delivery options
+
+6.8. Mobile-Specific Enhancements
+---------------------------------
+- Voice-to-text for quick note-taking
+- QR code scanning for attendance
+- Offline content creation (sync when online)
+- Location-based services for campus navigation
+- Biometric authentication (fingerprint, face recognition)
+- Dark mode for reduced battery consumption
+
+7. TECHNOLOGY CONSIDERATIONS
+============================
+- Responsive design for all device sizes
+- Progressive Web App (PWA) capabilities for offline access
+- Push notifications for important updates
+- Cloud synchronization for seamless experience across devices
+- Performance optimization for low-bandwidth scenarios
+- Security measures for sensitive academic data
+- Compliance with accessibility standards (WCAG)
+- Integration with learning management systems
+
+8. SUCCESS METRICS FOR FACULTY DASHBOARD
+========================================
+- Daily/Monthly active user rates
+- Time spent on dashboard
+- Course creation and management efficiency
+- Assignment grading turnaround time
+- Student engagement levels in faculty courses
+- Research project management effectiveness
+- Advising session scheduling and completion rates
+- User satisfaction scores
+- Feature adoption rates
+- Support ticket reduction
+- Mobile vs. desktop usage patterns

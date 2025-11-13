@@ -1,0 +1,382 @@
+IUB Digital Campus - Student Dashboard Specification
+====================================================
+
+1. GOAL
+=======
+The Student Dashboard is the central hub for students to access all their academic and campus-related services. It provides a personalized, role-based interface that allows students to:
+- View their academic progress and performance
+- Access course materials and submit assignments
+- Interact with faculty and advisors
+- Participate in campus activities
+- Manage their profile and preferences
+- Access emergency and safety features
+
+The dashboard follows the "Role-first UX" principle, showing only what students need to see for an efficient and focused experience.
+
+2. FEATURES
+===========
+2.1. Core Features
+------------------
+- Personal campus dashboard with classes, schedule, next assignment, notifications, announcements, quick links
+- Academic snapshot: completed courses, CGPA, suggested courses to retake, predicted graduation date, recommended electives
+- "My IUBian" card: personal profile, skills, enrolled activities, badges
+- Course access: syllabus, notes, assignments, gradebook, discussion forums
+- Class recording access (as permitted by faculty)
+- Attendance tracking
+- Academic transcript access
+- Degree planning tools
+- Advisor communication and appointment scheduling
+- Library access: book catalog, loan management, digital resources
+- Campus life participation: clubs, competitions, student-created features
+- Financial services: tuition payment, scholarship applications, billing history
+- Emergency and safety features: panic button, emergency contacts
+- Notification center: announcements, course updates, campus alerts
+
+2.2. Academic Features
+----------------------
+- CGPA calculator
+- Retake recommendation engine
+- What-if CGPA simulator
+- Academic progress tracking
+- Early warning alerts for GPA thresholds
+- Mandatory milestone reminders (thesis, internships)
+
+2.3. Communication Features
+---------------------------
+- Advisor chat and meeting scheduling
+- Course discussion forums
+- Campus-wide announcements
+- Department-level announcements
+- Course-specific notifications
+- Poll participation
+
+2.4. Campus Life Features
+-------------------------
+- Clubs & societies portal
+- Event registration
+- Skill competitions and hackathons
+- Student-created features gallery (blogs, podcasts, galleries)
+- Funding request submission (for club leaders)
+
+2.5. Finance Features
+---------------------
+- Tuition/fee payment integration
+- Scholarship application
+- Financial aid tracking
+- Billing history
+
+2.6. Safety & Emergency Features
+--------------------------------
+- Panic button (mobile app)
+- Emergency contact directory
+- Campus-wide alerts (SMS, push, email, public display)
+
+3. PAGE NAMES
+=============
+The Student Dashboard includes or links to the following pages:
+
+3.1. Dashboard Pages
+--------------------
+- Student Dashboard (Main)
+- Academic Progress Page
+- Course List Page
+- Schedule Page
+- Notifications Page
+- Announcements Page
+
+3.2. Academic Pages
+-------------------
+- Course Details Page
+- Course Syllabus Page
+- Course Notes Page
+- Course Assignments Page
+- Course Gradebook Page
+- Course Discussion Forum Page
+- Class Recording Page
+- Attendance Tracking Page
+- Academic Transcript Page
+- Degree Planning Page
+- CGPA Calculator Page
+- Retake Recommendation Page
+
+3.3. Assignment Pages
+---------------------
+- Assignment Submission Page
+- Assignment Details Page
+- Submission History Page
+
+3.4. Advising Pages
+-------------------
+- Advisor List Page
+- Advisee Progress Tracking Page
+- Appointment Scheduling Page
+- CGPA Simulator Page
+- Milestone Reminder Page
+
+3.5. Library Pages
+------------------
+- Book Catalog Search Page
+- Book Details Page
+- Loan Management Page
+- Borrowing History Page
+- Digital Resources Page
+
+3.6. Campus Life Pages
+----------------------
+- Clubs & Societies Portal Page
+- Club Details Page
+- Event Management Page
+- Membership Management Page
+- Funding Request Page
+- Skill Competitions Page
+- Hackathon Registration Page
+- Leaderboard Page
+- Student-created Features Gallery Page
+- Blog Platform Page
+- Podcast Platform Page
+
+3.7. Finance Pages
+------------------
+- Tuition Payment Page
+- Scholarship Application Page
+- Financial Aid Tracking Page
+- Billing History Page
+
+3.8. Profile Pages
+------------------
+- User Profile Page
+- "My IUBian" Card Page
+- Emergency Contact Management Page
+- Privacy Settings Page
+- Notification Preferences Page
+
+3.9. Communication Pages
+------------------------
+- Chat/Messaging Page
+- Discussion Forum Page
+- Poll Participation Page
+
+3.10. Emergency & Safety Pages
+------------------------------
+- Panic Button Interface
+- Emergency Contact Directory Page
+
+3.11. Mobile-Specific Pages
+---------------------------
+- Mobile Dashboard
+- Offline Mode Interface
+- Mobile Emergency Interface
+- Mobile Notification Page
+
+4. COMPONENTS NEEDED
+====================
+4.1. Common Components (Shared with all users)
+------------------------------------------------
+- Login Form
+- Registration Form
+- Password Reset Form
+- SSO Integration Component
+- MFA Verification Component
+- Main Navigation Menu
+- User Profile Dropdown
+- Notification Bell/Panel
+- Search Bar
+- Breadcrumb Navigation
+- Buttons (Primary, Secondary, Danger, etc.)
+- Form Inputs (Text, Email, Password, Select, etc.)
+- Modal/Dialog Component
+- Toast Notification Component
+- Loading Spinner
+- Data Tables
+- Pagination Controls
+- Cards/Tile Components
+- Tabs Component
+- Accordion Component
+- Global Announcement Banner
+- In-App Notification System
+- Chat Widget (minimized state)
+- Language Selector
+- Contrast Mode Toggle
+- Text Size Adjuster
+- Screen Reader Helper
+
+4.2. Student-Specific Components
+--------------------------------
+- Academic Progress Widget
+- Course Card Component
+- Assignment List (student view)
+- Gradebook (student view)
+- CGPA Calculator Component
+- Retake Recommendation Component
+- What-if Scenario Planner
+- Appointment Scheduler
+- Book Search Interface
+- Loan Management Panel
+- Event Registration Form
+- Competition Submission Form
+- Tuition Payment Form
+- Scholarship Application Form
+- Panic Button Component
+- Emergency Contact Manager
+
+4.3. Mobile Components
+----------------------
+- Bottom Navigation Bar
+- Hamburger Menu
+- Quick Action Buttons
+- Offline Content Viewer
+- Mobile Emergency Interface
+- Push Notification Handler
+
+5. NEW DASHBOARD STRUCTURE
+==========================
+The Student Dashboard has been restructured with a modern layout featuring:
+
+5.1. Top Navigation Bar
+-----------------------
+- Dashboard title
+- Notification icon with badge counter
+- Profile avatar with dropdown menu containing:
+  * User profile information
+  * Profile editing option
+  * Settings access
+  * Logout button
+
+5.2. Side Menu
+--------------
+- Dashboard (📊)
+- My Courses (📚)
+- Assignments (📝)
+- Grades (📈)
+- Library (📖)
+- Calendar (📅)
+- Messages (💬)
+- Settings (⚙️)
+
+5.3. Main Content Area
+----------------------
+- Dynamic content area that changes based on selected side menu option
+- Dashboard view showing key academic metrics and quick access cards
+- Course view with enrolled courses and resources
+- Assignments view with pending and submitted assignments
+- Grades view with academic performance summary
+- Library view with access to digital resources
+- Calendar view with academic schedule
+- Messages view for communication
+- Settings view for preferences
+
+6. FUNCTIONS TO AVOID ON MOBILE (FOR OPTIMIZED PERFORMANCE)
+===========================================================
+To ensure optimal performance on mobile devices, the following functions should be limited or modified:
+
+6.1. Resource-Intensive Features
+--------------------------------
+- Real-time analytics dashboard with complex visualizations
+- High-resolution video playback for class recordings (should use adaptive streaming)
+- Large data table rendering (should use pagination and virtual scrolling)
+- Complex report generation (should be deferred to desktop)
+- Simultaneous multiple live video streams
+
+6.2. Bandwidth-Heavy Features
+-----------------------------
+- Auto-downloading of large course materials
+- Real-time collaborative document editing
+- High-frequency polling for notifications (should use push notifications)
+- Automatic loading of all course content at once
+- Background synchronization of large datasets
+
+6.3. Processing-Intensive Features
+----------------------------------
+- Complex search algorithms with multiple filters
+- Real-time plagiarism checking
+- Advanced data visualization rendering
+- Machine learning-based recommendation engines
+- Real-time chat translation services
+
+6.4. Memory-Intensive Features
+------------------------------
+- Caching large amounts of course content
+- Storing multiple high-resolution images
+- Keeping extensive chat history in memory
+- Multiple simultaneous file uploads/downloads
+
+7. IMPORTANT MISSING FEATURES (RECOMMENDATIONS)
+==============================================
+Based on analysis of student needs and current trends in educational technology, the following features should be considered for inclusion:
+
+7.1. Personal Productivity Features
+----------------------------------
+- Task management system with due date tracking
+- Calendar integration with academic schedule
+- Time management tools and Pomodoro timers
+- Study group formation and management
+- Note-taking application with organization features
+
+7.2. Career Development Features
+--------------------------------
+- Internship opportunity board
+- Job posting notifications
+- Resume builder and portfolio showcase
+- Alumni networking platform
+- Skill assessment and certification tracking
+
+7.3. Learning Enhancement Features
+----------------------------------
+- Flashcard system for course material
+- Quiz generation from course content
+- Peer tutoring matching system
+- Learning path recommendations
+- Academic resource recommendation engine
+
+7.4. Social & Community Features
+--------------------------------
+- Student mentorship program matching
+- Interest-based group formation
+- Campus event recommendation engine
+- Social learning features (study groups, peer review)
+- Achievement and recognition system
+
+7.5. Accessibility & Inclusion Features
+--------------------------------------
+- Dyslexia-friendly reading mode
+- Colorblind-friendly interface options
+- Voice-to-text and text-to-voice capabilities
+- Adjustable contrast and font size options
+- Keyboard navigation optimization
+
+7.6. Offline Functionality Enhancements
+---------------------------------------
+- Offline access to downloaded course materials
+- Offline assignment composition (sync when online)
+- Offline calendar and schedule access
+- Offline reading of downloaded textbooks
+- Offline progress tracking (sync when online)
+
+7.7. Mobile-Specific Enhancements
+---------------------------------
+- Biometric authentication (fingerprint, face recognition)
+- Location-based services for campus navigation
+- QR code scanning for attendance
+- Push notification customization
+- Dark mode for reduced battery consumption
+
+8. TECHNOLOGY CONSIDERATIONS
+============================
+- Responsive design for all device sizes
+- Progressive Web App (PWA) capabilities for offline access
+- Push notifications for important updates
+- Cloud synchronization for seamless experience across devices
+- Performance optimization for low-bandwidth scenarios
+- Security measures for sensitive academic data
+- Compliance with accessibility standards (WCAG)
+
+9. SUCCESS METRICS FOR STUDENT DASHBOARD
+========================================
+- Daily/Monthly active user rates
+- Time spent on dashboard
+- Task completion rates
+- User satisfaction scores
+- Feature adoption rates
+- Support ticket reduction
+- Academic performance correlation
+- Mobile vs. desktop usage patterns
