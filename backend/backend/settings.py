@@ -88,10 +88,36 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'DigitalCampus'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'DigitalIUB'),
+        'HOST': os.getenv('DB_HOST', 'pgbouncer'),
+        'PORT': os.getenv('DB_PORT', '6432'),
+        'CONN_MAX_AGE': 600,
+    },
+        'replica1': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'DigitalCampus'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'DigitalIUB'),
+        'HOST': os.getenv('DB_REPLICA1_HOST', 'db-replica1'),
+        'PORT': os.getenv('DB_REPLICA_PORT', '5433'),
+        'CONN_MAX_AGE': 600,
+    },
+    'replica2': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'DigitalCampus'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'DigitalIUB'),
+        'HOST': os.getenv('DB_REPLICA2_HOST', 'db-replica2'),
+        'PORT': os.getenv('DB_REPLICA_PORT', '5434'),
+        'CONN_MAX_AGE': 600,
     }
 }
+
+DATABASE_ROUTERS = ['backend.routers.DatabaseRouter']
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

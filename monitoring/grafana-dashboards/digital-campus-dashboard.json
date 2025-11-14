@@ -1,0 +1,129 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Digital Campus System Overview",
+    "tags": ["digital-campus"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "25s",
+    "rows": [
+      {
+        "title": "Backend Metrics",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Backend Response Time",
+            "type": "graph",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])",
+                "legendFormat": "Response Time"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Active Connections",
+            "type": "singlestat",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "django_http_requests_total",
+                "legendFormat": "Requests"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Database Metrics",
+        "panels": [
+          {
+            "id": 3,
+            "title": "Database Connections",
+            "type": "graph",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "pg_stat_database_numbackends",
+                "legendFormat": "Connections"
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "Slow Queries",
+            "type": "graph",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "rate(pg_stat_statements_mean_time_ms[5m])",
+                "legendFormat": "Slow Queries"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Cache Metrics",
+        "panels": [
+          {
+            "id": 5,
+            "title": "Redis Memory Usage",
+            "type": "graph",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "redis_memory_used_bytes",
+                "legendFormat": "Memory Used"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Cache Hit Ratio",
+            "type": "singlestat",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "redis_keyspace_hits_total / (redis_keyspace_hits_total + redis_keyspace_misses_total)",
+                "legendFormat": "Hit Ratio"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Frontend Metrics",
+        "panels": [
+          {
+            "id": 7,
+            "title": "Frontend Load Time",
+            "type": "graph",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "frontend_load_time_seconds",
+                "legendFormat": "Load Time"
+              }
+            ]
+          },
+          {
+            "id": 8,
+            "title": "Active Users",
+            "type": "singlestat",
+            "datasource": "Prometheus",
+            "targets": [
+              {
+                "expr": "frontend_active_users",
+                "legendFormat": "Active Users"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
