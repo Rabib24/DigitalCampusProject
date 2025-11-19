@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout as django_logout
 from django.contrib.auth.hashers import make_password
 import json
 from .models import User, Student, Faculty, Admin
@@ -44,10 +44,19 @@ def login_view(request):
                     'status': user.status
                 }
                 
+                # Include additional faculty information if user is faculty
+                if user.role == 'faculty':
+                    try:
+                        faculty_profile = Faculty.objects.get(user=user)
+                        user_data['department'] = faculty_profile.department
+                        user_data['employee_id'] = faculty_profile.employee_id
+                    except Faculty.DoesNotExist:
+                        pass
+                
                 return JsonResponse({
                     'success': True,
                     'user': user_data,
-                    'token': f"fake-jwt-token-for-{user.username}"  # In a real app, generate proper JWT
+                    'token': f"fake-jwt-token-for-{user.username}-role-{user.role}"  # Include role in token for middleware
                 })
             else:
                 return JsonResponse({
@@ -118,6 +127,21 @@ def register_view(request):
                 'success': False,
                 'message': 'Registration failed'
             }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Method not allowed'
+    }, status=405)
+
+@csrf_exempt
+def logout_view(request):
+    if request.method == 'POST':
+        # In a real app, you would invalidate the JWT token here
+        # For now, we'll just return a success response
+        return JsonResponse({
+            'success': True,
+            'message': 'Logged out successfully'
+        })
     
     return JsonResponse({
         'success': False,

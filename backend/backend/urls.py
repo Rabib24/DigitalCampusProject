@@ -17,7 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+api_v1_patterns = ([
+    path('auth/', include('users.urls')),
+    path('faculty/', include('faculty.urls')),
+], 'v1')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('users.urls')),
+    path('api/v1/', include(api_v1_patterns, namespace='v1')),
 ]

@@ -1,0 +1,372 @@
+Faculty Dashboard API Endpoints Specification
+==========================================
+
+This document outlines the API endpoints required for the Faculty Dashboard implementation.
+
+1. AUTHENTICATION ENDPOINTS
+=========================
+POST /api/v1/auth/faculty/login/
+- Faculty login with credentials
+- Returns JWT token and user data
+
+POST /api/v1/auth/faculty/logout/
+- Faculty logout
+- Invalidates session/token
+
+POST /api/v1/auth/faculty/password-reset/
+- Password reset request
+- Sends reset link to email
+
+POST /api/v1/auth/faculty/password-reset-confirm/
+- Password reset confirmation
+- Updates password with new one
+
+2. FACULTY PROFILE ENDPOINTS
+==========================
+GET /api/v1/faculty/profile/
+- Get faculty profile information
+
+PUT /api/v1/faculty/profile/
+- Update faculty profile information
+
+PATCH /api/v1/faculty/profile/
+- Partial update of faculty profile
+
+GET /api/v1/faculty/profile/emergency-contacts/
+- Get list of emergency contacts
+
+POST /api/v1/faculty/profile/emergency-contacts/
+- Add new emergency contact
+
+PUT /api/v1/faculty/profile/emergency-contacts/{id}/
+- Update emergency contact
+
+DELETE /api/v1/faculty/profile/emergency-contacts/{id}/
+- Delete emergency contact
+
+3. COURSE MANAGEMENT ENDPOINTS
+============================
+GET /api/v1/faculty/courses/
+- Get list of courses taught by faculty
+
+POST /api/v1/faculty/courses/
+- Create new course
+
+GET /api/v1/faculty/courses/{id}/
+- Get course details
+
+PUT /api/v1/faculty/courses/{id}/
+- Update course details
+
+DELETE /api/v1/faculty/courses/{id}/
+- Delete course
+
+GET /api/v1/faculty/courses/{id}/students/
+- Get list of enrolled students
+
+GET /api/v1/faculty/courses/{id}/syllabus/
+- Get course syllabus
+
+PUT /api/v1/faculty/courses/{id}/syllabus/
+- Update course syllabus
+
+GET /api/v1/faculty/courses/{id}/notes/
+- Get course notes
+
+POST /api/v1/faculty/courses/{id}/notes/
+- Add new course note
+
+PUT /api/v1/faculty/courses/{id}/notes/{note_id}/
+- Update course note
+
+DELETE /api/v1/faculty/courses/{id}/notes/{note_id}/
+- Delete course note
+
+4. ASSIGNMENT ENDPOINTS
+=====================
+GET /api/v1/faculty/assignments/
+- Get list of assignments (with filtering)
+
+POST /api/v1/faculty/assignments/
+- Create new assignment
+
+GET /api/v1/faculty/assignments/{id}/
+- Get assignment details
+
+PUT /api/v1/faculty/assignments/{id}/
+- Update assignment
+
+DELETE /api/v1/faculty/assignments/{id}/
+- Delete assignment
+
+GET /api/v1/faculty/assignments/{id}/submissions/
+- Get list of student submissions
+
+GET /api/v1/faculty/assignments/{id}/submissions/{submission_id}/
+- Get specific submission details
+
+POST /api/v1/faculty/assignments/{id}/grades/
+- Submit grades for assignment
+
+PUT /api/v1/faculty/assignments/{id}/submissions/{submission_id}/grade/
+- Grade specific submission
+
+GET /api/v1/faculty/assignments/{id}/plagiarism/
+- Get plagiarism report
+
+5. GRADEBOOK ENDPOINTS
+====================
+GET /api/v1/faculty/courses/{id}/gradebook/
+- Get gradebook for course
+
+POST /api/v1/faculty/courses/{id}/grades/
+- Submit multiple grades
+
+PUT /api/v1/faculty/courses/{id}/grades/{grade_id}/
+- Update specific grade
+
+GET /api/v1/faculty/courses/{id}/grades/export/
+- Export gradebook data
+
+6. ATTENDANCE ENDPOINTS
+=====================
+GET /api/v1/faculty/courses/{id}/attendance/
+- Get attendance records
+
+POST /api/v1/faculty/courses/{id}/attendance/
+- Create new attendance record
+
+PUT /api/v1/faculty/courses/{id}/attendance/{attendance_id}/
+- Update attendance record
+
+GET /api/v1/faculty/courses/{id}/attendance/export/
+- Export attendance data
+
+7. RECORDING ENDPOINTS
+====================
+GET /api/v1/faculty/courses/{id}/recordings/
+- Get list of recordings
+
+POST /api/v1/faculty/courses/{id}/recordings/
+- Start new recording
+
+PUT /api/v1/faculty/courses/{id}/recordings/{recording_id}/
+- Update recording details
+
+DELETE /api/v1/faculty/courses/{id}/recordings/{recording_id}/
+- Delete recording
+
+PATCH /api/v1/faculty/courses/{id}/recordings/{recording_id}/publish/
+- Publish recording
+
+8. ANNOUNCEMENT ENDPOINTS
+=======================
+GET /api/v1/faculty/announcements/
+- Get faculty announcements
+
+POST /api/v1/faculty/announcements/
+- Create new announcement
+
+GET /api/v1/faculty/announcements/{id}/
+- Get announcement details
+
+PUT /api/v1/faculty/announcements/{id}/
+- Update announcement
+
+DELETE /api/v1/faculty/announcements/{id}/
+- Delete announcement
+
+9. ADVISING ENDPOINTS
+===================
+GET /api/v1/faculty/advising/advisees/
+- Get list of advisees
+
+GET /api/v1/faculty/advising/advisees/{id}/
+- Get advisee details
+
+GET /api/v1/faculty/advising/advisees/{id}/progress/
+- Get advisee academic progress
+
+GET /api/v1/faculty/advising/appointments/
+- Get advising appointments
+
+POST /api/v1/faculty/advising/appointments/
+- Create new appointment
+
+PUT /api/v1/faculty/advising/appointments/{id}/
+- Update appointment
+
+DELETE /api/v1/faculty/advising/appointments/{id}/
+- Delete appointment
+
+GET /api/v1/faculty/advising/milestones/
+- Get milestone reminders
+
+POST /api/v1/faculty/advising/milestones/
+- Create new milestone
+
+10. RESEARCH ENDPOINTS
+====================
+GET /api/v1/faculty/research/projects/
+- Get research projects
+
+POST /api/v1/faculty/research/projects/
+- Create new research project
+
+GET /api/v1/faculty/research/projects/{id}/
+- Get research project details
+
+PUT /api/v1/faculty/research/projects/{id}/
+- Update research project
+
+DELETE /api/v1/faculty/research/projects/{id}/
+- Delete research project
+
+GET /api/v1/faculty/research/proposals/
+- Get research proposals
+
+POST /api/v1/faculty/research/proposals/
+- Submit new proposal
+
+GET /api/v1/faculty/research/publications/
+- Get publications
+
+POST /api/v1/faculty/research/publications/
+- Add new publication
+
+GET /api/v1/faculty/research/ethics/
+- Get ethics applications
+
+POST /api/v1/faculty/research/ethics/
+- Submit new ethics application
+
+11. COMMUNICATION ENDPOINTS
+=========================
+GET /api/v1/faculty/messages/
+- Get faculty messages
+
+POST /api/v1/faculty/messages/
+- Send new message
+
+GET /api/v1/faculty/messages/{id}/
+- Get message details
+
+GET /api/v1/faculty/forums/
+- Get discussion forums
+
+POST /api/v1/faculty/forums/
+- Create new forum
+
+GET /api/v1/faculty/forums/{id}/threads/
+- Get forum threads
+
+POST /api/v1/faculty/forums/{id}/threads/
+- Create new thread
+
+GET /api/v1/faculty/polls/
+- Get polls
+
+POST /api/v1/faculty/polls/
+- Create new poll
+
+12. ANALYTICS ENDPOINTS
+=====================
+GET /api/v1/faculty/analytics/course-utilization/
+- Get course utilization data
+
+GET /api/v1/faculty/analytics/attendance/
+- Get attendance analytics
+
+GET /api/v1/faculty/analytics/performance/
+- Get performance analytics
+
+GET /api/v1/faculty/analytics/research/
+- Get research analytics
+
+13. ADMINISTRATIVE ENDPOINTS
+==========================
+GET /api/v1/faculty/admin/courses/
+- Get department courses
+
+PUT /api/v1/faculty/admin/courses/{id}/faculty/
+- Assign faculty to course
+
+GET /api/v1/faculty/admin/timetable/
+- Get timetable
+
+PUT /api/v1/faculty/admin/timetable/
+- Update timetable
+
+GET /api/v1/faculty/admin/requests/
+- Get pending requests
+
+PUT /api/v1/faculty/admin/requests/{id}/approve/
+- Approve request
+
+PUT /api/v1/faculty/admin/requests/{id}/reject/
+- Reject request
+
+GET /api/v1/faculty/admin/consent-logs/
+- Get consent logs
+
+GET /api/v1/faculty/admin/audit-trail/
+- Get audit trail
+
+14. NOTIFICATION ENDPOINTS
+========================
+GET /api/v1/faculty/notifications/
+- Get faculty notifications
+
+PUT /api/v1/faculty/notifications/{id}/read/
+- Mark notification as read
+
+DELETE /api/v1/faculty/notifications/{id}/
+- Delete notification
+
+GET /api/v1/faculty/notifications/preferences/
+- Get notification preferences
+
+PUT /api/v1/faculty/notifications/preferences/
+- Update notification preferences
+
+15. SCHEDULE ENDPOINTS
+====================
+GET /api/v1/faculty/schedule/
+- Get faculty schedule
+
+POST /api/v1/faculty/schedule/events/
+- Create new schedule event
+
+PUT /api/v1/faculty/schedule/events/{id}/
+- Update schedule event
+
+DELETE /api/v1/faculty/schedule/events/{id}/
+- Delete schedule event
+
+QUERY PARAMETERS:
+================
+Most endpoints support the following query parameters:
+- page: Page number for pagination
+- page_size: Number of items per page
+- search: Search term for filtering
+- ordering: Field to order results by
+- filter_by: Additional filtering criteria
+
+AUTHENTICATION:
+==============
+All endpoints except authentication require a valid JWT token in the Authorization header:
+Authorization: Bearer <token>
+
+ERROR RESPONSES:
+===============
+400: Bad Request - Invalid input data
+401: Unauthorized - Missing or invalid authentication
+403: Forbidden - Insufficient permissions
+404: Not Found - Resource does not exist
+500: Internal Server Error - Server-side error
+
+SUCCESS RESPONSES:
+================
+200: OK - Successful GET, PUT, PATCH requests
+201: Created - Successful POST requests
+204: No Content - Successful DELETE requests

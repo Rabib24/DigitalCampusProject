@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'rest_framework',
     'users',
     'courses',
     'assignments',
@@ -50,6 +51,11 @@ INSTALLED_APPS = [
     'research',
     'communications',
     'emergency',
+    'faculty',
+    'appointments',
+    'publications',
+    'consent_logs',
+
 ]
 
 MIDDLEWARE = [
@@ -61,6 +67,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'users.middleware.JWTAuthenticationMiddleware', 
+    'faculty.middleware.FacultyRoleMiddleware',
+    'faculty.error_handling.FacultyAPIErrorMiddleware',  # Add this line
+
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -92,11 +102,12 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'DigitalCampus'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'DigitalIUB'),
-        'HOST': os.getenv('DB_HOST', 'pgbouncer'),
-        'PORT': os.getenv('DB_PORT', '6432'),
+        # Use localhost by default for local development; Docker can override DB_HOST.
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
         'CONN_MAX_AGE': 600,
     },
-        'replica1': {
+    'replica1': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'DigitalCampus'),
         'USER': os.getenv('DB_USER', 'postgres'),
@@ -116,8 +127,7 @@ DATABASES = {
     }
 }
 
-DATABASE_ROUTERS = ['backend.routers.DatabaseRouter']
-
+DATABASE_ROUTERS = ['backend.routers.DatabaseRouter.DatabaseRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -161,6 +171,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
 
+REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+}
+
 # Redis Configuration (Disabled for development)
 # CACHES = {
 #     'default': {
@@ -198,3 +218,39 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'faculty_api.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'faculty_api': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
