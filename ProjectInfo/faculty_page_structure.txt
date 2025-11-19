@@ -1,0 +1,403 @@
+Faculty Dashboard Page Structure Plan
+===================================
+
+Based on FacultyDashboard.txt specification, here's the detailed page structure:
+
+1. MAIN DASHBOARD PAGES
+=====================
+1.1. Faculty Dashboard (Main) - /faculty/
+- Header with user info and quick actions
+- Overview widgets:
+  - Course summary (current courses, enrollment counts)
+  - Recent assignments (due soon, needing grading)
+  - Upcoming classes/schedule
+  - Recent announcements
+  - Quick action buttons (create assignment, post announcement, etc.)
+  - Research project status
+  - Advisee alerts (if any)
+
+1.2. Course List Page - /faculty/courses/
+- Filterable/searchable list of courses
+- Course cards with key info (title, code, semester, enrollment)
+- Quick actions per course (view details, gradebook, assignments)
+- Create new course button
+
+1.3. Schedule Page - /faculty/schedule/
+- Weekly calendar view
+- Class sessions with details
+- Recording status indicators
+- Quick navigation to class materials
+
+1.4. Notifications Page - /faculty/notifications/
+- List of all notifications
+- Filtering by type (announcements, assignments, etc.)
+- Mark as read/unread functionality
+- Notification settings
+
+1.5. Announcements Page - /faculty/announcements/
+- List of posted announcements
+- Create new announcement button
+- Filter by course, date, status
+- Edit/delete functionality
+
+2. COURSE MANAGEMENT PAGES
+========================
+2.1. Course Creation Page - /faculty/courses/create/
+- Form for course details (title, code, description, etc.)
+- Semester selection
+- Prerequisites configuration
+- Enrollment settings
+- Syllabus editor
+
+2.2. Course Details Page - /faculty/courses/[id]/
+- Course overview
+- Navigation tabs to related sections
+- Quick actions (edit, delete, clone)
+- Enrollment statistics
+
+2.3. Course Syllabus Page - /faculty/courses/[id]/syllabus/
+- Syllabus content display
+- Edit button for faculty
+- Version history
+- Download/print options
+
+2.4. Course Notes Page - /faculty/courses/[id]/notes/
+- List of lecture notes
+- Upload new notes
+- Organize by date/topic
+- Search functionality
+
+2.5. Course Assignments Page - /faculty/courses/[id]/assignments/
+- List of assignments for this course
+- Create new assignment button
+- Assignment statistics
+- Quick grading access
+
+2.6. Course Gradebook Page - /faculty/courses/[id]/gradebook/
+- Student roster with grades
+- Assignment columns
+- Export functionality
+- Grade statistics
+- Manual grade entry
+
+2.7. Course Discussion Forum Page - /faculty/courses/[id]/forum/
+- List of forum threads
+- Create new thread
+- Moderate posts
+- Search functionality
+
+2.8. Class Recording Management Page - /faculty/courses/[id]/recordings/
+- List of recordings
+- Recording controls (start/stop)
+- Privacy settings
+- Download/share options
+
+2.9. Attendance Tracking Page - /faculty/courses/[id]/attendance/
+- Session list
+- Attendance marking interface
+- Reports and analytics
+- Export functionality
+
+3. ASSIGNMENT & GRADING PAGES
+===========================
+3.1. Assignment Creation Page - /faculty/assignments/create/
+- Assignment details form
+- Due date and time
+- Submission type (file, text, etc.)
+- Rubric builder
+- File attachments
+
+3.2. Assignment Details Page - /faculty/assignments/[id]/
+- Assignment overview
+- Submission statistics
+- Quick actions (edit, delete, grade)
+- Student submission list
+
+3.3. Grading Page (for faculty) - /faculty/assignments/[id]/grade/
+- Student submission viewer
+- Grade entry form
+- Feedback editor
+- Rubric application
+- Save/submit grades
+
+3.4. Plagiarism Report Page - /faculty/assignments/[id]/plagiarism/
+- Plagiarism detection results
+- Detailed similarity reports
+- Flagged content highlighting
+- Action buttons (review, approve, etc.)
+
+3.5. Submission Review Page - /faculty/assignments/[id]/submissions/[submissionId]/
+- Student submission content
+- Grade and feedback display
+- Revision history
+- Download options
+
+4. ADVISING PAGES (Faculty as Advisors)
+=====================================
+4.1. Advisee List Page - /faculty/advising/advisees/
+- List of assigned advisees
+- Key metrics per student (GPA, credits, etc.)
+- Alert indicators (low GPA, missing requirements)
+- Quick access to student details
+
+4.2. Advisee Progress Tracking Page - /faculty/advising/advisees/[id]/progress/
+- Academic history
+- Degree progress tracking
+- Course recommendations
+- Retake suggestions
+- Milestone tracking
+
+4.3. Appointment Scheduling Page - /faculty/advising/appointments/
+- Calendar view
+- Available time slots
+- Appointment requests
+- Meeting history
+
+4.4. CGPA Simulator Page - /faculty/advising/cgpa-simulator/
+- Interactive GPA calculator
+- "What-if" scenario planning
+- Course selection interface
+- Results visualization
+
+4.5. Milestone Reminder Page - /faculty/advising/milestones/
+- List of upcoming milestones
+- Student progress tracking
+- Alert system
+- Reminder configuration
+
+4.6. Retake Recommendation Page - /faculty/advising/retake-recommendations/
+- Course retake suggestions
+- Academic improvement plans
+- Prerequisite analysis
+- Schedule optimization
+
+5. RESEARCH PAGES
+================
+5.1. Research Project List Page - /faculty/research/projects/
+- List of research projects
+- Project status indicators
+- Quick actions (view, edit, share)
+- Create new project button
+
+5.2. Research Project Details Page - /faculty/research/projects/[id]/
+- Project overview
+- Team members
+- Timeline and milestones
+- Documents and resources
+- Progress tracking
+
+5.3. Project Proposal Submission Page - /faculty/research/proposals/create/
+- Proposal form
+- Required fields based on guidelines
+- File attachment options
+- Preview and submission
+
+5.4. Grant Application Page - /faculty/research/grants/apply/
+- Grant application form
+- Funding agency information
+- Budget planning tools
+- Document management
+
+5.5. Publication Management Page - /faculty/research/publications/
+- List of publications
+- Add new publication
+- Citation management
+- Impact metrics
+
+5.6. Ethics Approval Page - /faculty/research/ethics/
+- Ethics application forms
+- Submission tracking
+- Review status
+- Document repository
+
+6. COMMUNICATION PAGES
+=====================
+6.1. Announcement Creation Page - /faculty/communications/announcements/create/
+- Announcement form
+- Target audience selection
+- Scheduling options
+- Preview functionality
+
+6.2. Chat/Messaging Page - /faculty/communications/messages/
+- Contact list
+- Conversation threads
+- File sharing
+- Message search
+
+6.3. Discussion Forum Management Page - /faculty/communications/forums/manage/
+- Forum list
+- Thread moderation
+- User management
+- Settings configuration
+
+6.4. Poll Creation Page - /faculty/communications/polls/create/
+- Poll creation form
+- Question and options
+- Target audience
+- Results visualization
+
+7. ANALYTICS & REPORTING PAGES
+============================
+7.1. Course Utilization Report Page - /faculty/analytics/course-utilization/
+- Course engagement metrics
+- Resource usage statistics
+- Student participation data
+- Export options
+
+7.2. Attendance Analytics Page - /faculty/analytics/attendance/
+- Attendance trends
+- Class-wise analysis
+- Student attendance patterns
+- Reporting tools
+
+7.3. Academic Performance Report Page - /faculty/analytics/performance/
+- Grade distribution
+- Student performance trends
+- Comparative analysis
+- Export functionality
+
+7.4. Research Output Dashboard - /faculty/analytics/research/
+- Publication metrics
+- Citation analysis
+- Collaboration network
+- Impact visualization
+
+8. PROFILE PAGES
+===============
+8.1. User Profile Page - /faculty/profile/
+- Personal information
+- Academic credentials
+- Contact details
+- Profile picture
+- Edit functionality
+
+8.2. "My IUBian" Card Page - /faculty/profile/my-iubian/
+- Digital ID card
+- Barcode/QR code
+- Emergency contact info
+- Download/print options
+
+8.3. Emergency Contact Management Page - /faculty/profile/emergency-contacts/
+- List of contacts
+- Add/edit/delete functionality
+- Priority settings
+- Notification preferences
+
+8.4. Privacy Settings Page - /faculty/profile/privacy/
+- Data sharing preferences
+- Visibility settings
+- Consent management
+- Audit log
+
+8.5. Notification Preferences Page - /faculty/profile/notifications/
+- Notification types
+- Delivery methods
+- Frequency settings
+- Do not disturb options
+
+9. ADMINISTRATIVE PAGES
+=====================
+9.1. Department Course Management Page - /faculty/admin/courses/
+- Course catalog
+- Faculty assignments
+- Enrollment management
+- Schedule coordination
+
+9.2. Timetable Management Page - /faculty/admin/timetable/
+- Schedule editor
+- Conflict detection
+- Room assignments
+- Export options
+
+9.3. Student Request Approval Page - /faculty/admin/requests/
+- Pending requests list
+- Approval workflow
+- History tracking
+- Notification system
+
+9.4. Consent Log Management Page - /faculty/admin/consent-logs/
+- Consent records
+- Search and filter
+- Export functionality
+- Audit trail
+
+9.5. Audit Trail Page - /faculty/admin/audit-trail/
+- Activity logs
+- Filter by date, user, action
+- Export options
+- Security monitoring
+
+10. MOBILE-SPECIFIC PAGES
+=======================
+10.1. Mobile Dashboard - /faculty/mobile/
+- Simplified dashboard view
+- Touch-optimized layout
+- Quick action buttons
+- Essential information only
+
+10.2. Mobile Notification Page - /faculty/mobile/notifications/
+- Mobile-optimized notification list
+- Push notification support
+- Quick actions
+- Mark as read functionality
+
+PAGE HIERARCHY:
+==============
+/faculty/
+├── /courses/
+│   ├── /create/
+│   └── /[id]/
+│       ├── /syllabus/
+│       ├── /notes/
+│       ├── /assignments/
+│       ├── /gradebook/
+│       ├── /forum/
+│       ├── /recordings/
+│       └── /attendance/
+├── /schedule/
+├── /notifications/
+├── /announcements/
+├── /assignments/
+│   ├── /create/
+│   └── /[id]/
+│       ├── /grade/
+│       ├── /plagiarism/
+│       └── /submissions/[submissionId]/
+├── /advising/
+│   ├── /advisees/
+│   │   └── /[id]/progress/
+│   ├── /appointments/
+│   ├── /cgpa-simulator/
+│   ├── /milestones/
+│   └── /retake-recommendations/
+├── /research/
+│   ├── /projects/
+│   │   └── /[id]/
+│   ├── /proposals/create/
+│   ├── /grants/apply/
+│   ├── /publications/
+│   └── /ethics/
+├── /communications/
+│   ├── /announcements/create/
+│   ├── /messages/
+│   ├── /forums/manage/
+│   └── /polls/create/
+├── /analytics/
+│   ├── /course-utilization/
+│   ├── /attendance/
+│   ├── /performance/
+│   └── /research/
+├── /profile/
+│   ├── /my-iubian/
+│   ├── /emergency-contacts/
+│   ├── /privacy/
+│   └── /notifications/
+├── /admin/
+│   ├── /courses/
+│   ├── /timetable/
+│   ├── /requests/
+│   ├── /consent-logs/
+│   └── /audit-trail/
+└── /mobile/
+    ├── /
+    └── /notifications/

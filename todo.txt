@@ -1,9 +1,12 @@
 IUB Digital Campus Project - Complete Task List
 ==============================================
-create folder for separated files:
-Component: for all react component
-Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENTIONED Fields
 
+0. CODEBASE SETUP
+==================
+- Initialize Django backend project with core apps (users, courses, assignments, finance, library, activities, research, communications, emergency) [COMPLETED]
+- Initialize Next.js frontend project with TypeScript and Tailwind CSS tooling [COMPLETED]
+- Configure Django REST Framework for API layer [COMPLETED]
+- Configure base API routing and versioning strategy [COMPLETED]
 
 1. PROJECT SETUP AND INFRASTRUCTURE
 ===================================
@@ -47,9 +50,14 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 - Create Staff model extending User with fields
 
 2.3. Authentication Pages
-- Create Login Page with form validation and error handling
-- Create Registration Page (University email only) with validation
-- Create Password Reset Page with email verification
+- Create Login Page with form validation and error handling [COMPLETED]
+- Create Registration Page (University email only) with validation [COMPLETED]
+- Create Password Reset Page with email verification [COMPLETED]
+
+2.4. Frontend Landing & Auth UI
+- Implement role-selection home page with inline login form based on FrontendDesignSample [COMPLETED]
+- Implement Next.js login, registration, forgot password, and reset password pages using sample design [COMPLETED]
+- Implement authentication validation and dashboard protection [COMPLETED]
 
 3. DASHBOARD DEVELOPMENT
 ========================
@@ -65,7 +73,7 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 - Create Screen Reader Helper
 
 3.2. Student Dashboard [in progress]
-- Create Student Dashboard main page with personalized content
+- Create Student Dashboard main page with personalized content [IN PROGRESS]
 - Implement Academic Progress Widget showing completed courses, CGPA, suggested courses to retake, predicted graduation date, recommended electives
 - Create "My IUBian" Card with personal profile, skills, enrolled activities, badges
 - Implement Course Card Component for accessing syllabus, notes, assignments, gradebook, discussion forums
@@ -93,24 +101,26 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 - Implement Emergency Contact Manager
 
 3.3. Faculty Dashboard [in progress]
-- Create Faculty Dashboard main page
-- Implement Course Management Widget
-- Create Assignment List (faculty view)
-- Implement Gradebook (faculty view)
-- Create Class Recording Controls with faculty-controlled start/stop and sharing visibility
-- Implement Announcement Creation Form
-- Create Advisee List Widget with academic progress tracking
-- Implement Research Project Widget
-- Create Analytics Dashboard for course utilization and student performance
-- Implement Academic Progress Tracking Component
-- Implement Degree Planning Tools
-- Create Communication Tools
-- Implement What-if Scenario Planner (for advising) [AI]
-- Create Appointment Scheduler (for advising)
-- Implement Project Proposal Form
-- Create Grant Application Form
-- Implement Publication Manager
-- Create Consent Log Management
+- [x] Create Faculty Dashboard main page [COMPLETED]
+- [x] Implement Course Management Widget [COMPLETED]
+- [x] Create Assignment List (faculty view) [COMPLETED]
+- [x] Implement Gradebook (faculty view) [COMPLETED]
+- [x] Create Class Recording Controls with faculty-controlled start/stop and sharing visibility [COMPLETED]
+- [x] Implement Announcement Creation Form [COMPLETED]
+- [x] Create Advisee List Widget with academic progress tracking [COMPLETED]
+- [x] Implement Research Project Widget [COMPLETED]
+- [x] Create Analytics Dashboard for course utilization and student performance [COMPLETED]
+- [x] Implement Academic Progress Tracking Component [COMPLETED]
+- [x] Implement Degree Planning Tools [COMPLETED]
+- [x] Create Communication Tools [COMPLETED]
+- [~] Implement What-if Scenario Planner (for advising) [IN PROGRESS]
+- [~] Create Appointment Scheduler (for advising) [IN PROGRESS]
+- [x] Implement Project Proposal Form [COMPLETED]
+- [x] Create Grant Application Form [COMPLETED]
+- [x] Implement Publication Manager [COMPLETED]
+- [x] Create Consent Log Management [COMPLETED]
+- [x] Create detailed FacultyDashboardTodo.txt with complete implementation plan [COMPLETED]
+- [x] Reference FacultyDashboardTodo.txt for detailed task breakdown [COMPLETED]
 
 3.4. Department Admin Dashboard [in progress]
 - Create Department Admin Dashboard main page
@@ -124,7 +134,7 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 - Create Faculty Profile Management Component
 - Implement Faculty Workload Tracking Component
 - Create Student Enrollment Tracking Component
-- Implement Student Progress Monitoring Component
+- Create Student Progress Monitoring Component
 - Create Document Management Component
 
 3.5. Library Staff Dashboard [in progress]
@@ -140,6 +150,22 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 
 3.6. IT Admin Dashboard [in progress]
 - Create IT Admin Dashboard main page
+
+3.7. Advisor Dashboard [NEW]
+- Create Advisor Dashboard main page with academic progress tracking
+- Implement Advisee List Widget with academic progress tracking
+- Create Retake Recommendation Component
+- Implement What-if Scenario Planner
+- Create Appointment Scheduler for advising
+- Implement Early Warning Alert System for GPA thresholds
+
+3.8. Research Admin Dashboard [NEW]
+- Create Research Admin Dashboard main page
+- Implement Project Approval Workflow
+- Create Ethics Management Component
+- Implement Grant Management System
+- Create Publication Management Component
+- Create Research Collaboration Platform
 - Implement System Health Widget
 - Create Security Monitoring Component
 - Create User Provisioning Component
@@ -152,11 +178,11 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 - Create Access Control Management Component
 - Implement Authentication Management Component
 
-3.7. Other Dashboards
+3.9. Other Dashboards
 - Create Emergency Contact Management Page and Implement functionalities
 - Create Notification Preferences Page
 
-3.8. Mobile Dashboard Components
+3.10. Mobile Dashboard Components
 - Create Mobile Dashboard for all user types
 - Implement Offline Mode Interface with offline content viewer
 - Create Mobile Emergency Interface with panic button
@@ -211,7 +237,6 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 - Implement Loan Management Page
 - Create Borrowing History Page
 - Implement Digital Resources Page
-- Create Library Analytics Page
 
 6. RESEARCH MANAGEMENT
 ======================
@@ -419,3 +444,10 @@ Models: in django for ALL MODELS ACCORDING TO "DigitalCampusModelsPlan.TXT" MENT
 - Implement user training and onboarding programs
 - Create marketing and communication plan for launch
 - Set up metrics tracking for success measurement
+
+21. FRONTEND WORKFLOW ACTIVITIES (FROM PREVIOUS SESSIONS)
+=========================================================
+- Analyze FrontendDesignSample home, auth, and student dashboard layouts [COMPLETED]
+- Implement role-selection home page with inline login form in Next.js using FrontendDesignSample [COMPLETED]
+- Implement Next.js login, registration, forgot password, and reset password pages using FrontendDesignSample [COMPLETED]
+- Implement Student Dashboard main layout and core widgets in Next.js based on FrontendDesignSample [INCOMPLETE]
