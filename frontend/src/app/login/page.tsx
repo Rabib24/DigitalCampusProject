@@ -46,7 +46,12 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/auth/login/", {
+      // Determine the correct endpoint based on the selected role
+      const endpoint = selectedRole === 'faculty' 
+        ? "http://localhost:8000/api/v1/faculty/auth/login/" 
+        : "http://localhost:8000/api/v1/auth/login/";
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,13 +62,21 @@ export default function LoginPage() {
         }),
       });
 
+      // Check if the response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        setError("Server error. Please make sure the backend server is running and try again.");
+        console.error("Non-JSON response received:", await response.text());
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
         // Save authentication data
         saveAuthData(data.token, data.user);
         
-        // Redirect based on role
+        // Redirect based on role from user data
         const roleMap: Record<string, string> = {
           student: "/student",
           faculty: "/faculty",
@@ -74,12 +87,21 @@ export default function LoginPage() {
           research: "/research",
           "it-admin": "/it-admin",
         };
-        router.push(roleMap[selectedRole || "student"] || "/student");
+        router.push(roleMap[data.user.role || "student"] || "/student");
       } else {
-        setError(data.message || "Invalid credentials");
+        // Handle specific error cases
+        if (response.status === 401) {
+          setError(data.message || "Invalid credentials. Please check your email/username and password.");
+        } else if (response.status === 403) {
+          setError(data.message || "Account access denied. Please contact administrator.");
+        } else if (response.status === 429) {
+          setError(data.message || "Too many login attempts. Please try again later.");
+        } else {
+          setError(data.message || "Login failed. Please try again.");
+        }
       }
     } catch (err) {
-      setError("An error occurred during login. Please try again.");
+      setError("An error occurred during login. Please check your network connection and make sure the backend server is running.");
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);

@@ -1,11 +1,64 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { mockCourseGrades } from "@/components/student/mockData";
+import { apiGet } from "@/lib/api";
+
+interface CourseGrade {
+  course: string;
+  grade: string;
+  points: number;
+  percentage: number;
+}
 
 export function GradesView() {
   const router = useRouter();
-  const courseGrades = mockCourseGrades;
+  const [courseGrades, setCourseGrades] = useState<CourseGrade[]>([]);
+  const [cgpa, setCgpa] = useState(0);
+  const [semesterGpa, setSemesterGpa] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        setLoading(true);
+        // Fetch course grades
+        const gradesResponse = await apiGet('/student/grades');
+        const gradesData = await gradesResponse.json();
+        setCourseGrades(gradesData);
+
+        // Fetch overall stats
+        const statsResponse = await apiGet('/student/grades/stats');
+        const statsData = await statsResponse.json();
+        setCgpa(statsData.cgpa);
+        setSemesterGpa(statsData.semesterGpa);
+      } catch (err) {
+        setError("Failed to load grades");
+        console.error("Grades fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGrades();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-lg">Loading grades...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
 
   const gradeColor = (grade: string) => {
     if (grade.startsWith("A")) return "text-green-600 dark:text-green-400";
@@ -28,7 +81,7 @@ export function GradesView() {
             <p className="text-sm font-medium">Current CGPA</p>
           </div>
           <div className="px-4 pb-4">
-            <div className="text-4xl font-bold text-primary">3.55</div>
+            <div className="text-4xl font-bold text-primary">{cgpa.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-2">Based on completed courses</p>
           </div>
         </div>
@@ -38,7 +91,7 @@ export function GradesView() {
             <p className="text-sm font-medium">Semester GPA</p>
           </div>
           <div className="px-4 pb-4">
-            <div className="text-4xl font-bold text-primary">3.65</div>
+            <div className="text-4xl font-bold text-primary">{semesterGpa.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-2">This semester</p>
           </div>
         </div>

@@ -1,11 +1,57 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { mockAssignments } from "@/components/student/mockData";
+import { apiGet } from "@/lib/api";
+
+interface Assignment {
+  id: number;
+  title: string;
+  course: string;
+  dueDate: string;
+  status: "pending" | "submitted";
+  priority: "high" | "medium" | "low";
+}
 
 export function AssignmentsView() {
   const router = useRouter();
-  const assignments = mockAssignments;
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        setLoading(true);
+        const response = await apiGet('/student/assignments');
+        const data = await response.json();
+        setAssignments(data);
+      } catch (err) {
+        setError("Failed to load assignments");
+        console.error("Assignments fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-lg">Loading assignments...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
 
   const priorityClasses = (priority: "high" | "medium" | "low") => {
     switch (priority) {

@@ -17,7 +17,7 @@ def test_faculty_login_and_dashboard():
     
     # Test data for a faculty user
     login_data = {
-        "identifier": "faculty_test",  # We'll create this user if it doesn't exist
+        "identifier": "testfaculty",  # Using the test user we just created
         "password": "testpass123"
     }
     
