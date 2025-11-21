@@ -23,20 +23,11 @@ export function DashboardView() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // In a real app, you would fetch actual dashboard data from the backend
-        // const response = await apiGet('/student/dashboard');
-        // const data = await response.json();
+        // Fetch actual dashboard data from the backend
+        const response = await apiGet('/student/dashboard');
+        const data = await response.json();
         
-        // For now, we'll use mock data
-        const mockData: DashboardData = {
-          cgpa: 3.75,
-          completedCourses: 24,
-          remainingCourses: 8,
-          predictedGraduation: "December 2025",
-          attendanceRate: 92,
-        };
-        
-        setDashboardData(mockData);
+        setDashboardData(data);
       } catch (err) {
         setError("Failed to load dashboard data");
         console.error("Dashboard data fetch error:", err);

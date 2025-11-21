@@ -1,17 +1,65 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { mockCourses } from "@/components/student/mockData";
+import { apiGet } from "@/lib/api";
+
+interface Course {
+  id: number;
+  code: string;
+  name: string;
+  instructor: string;
+  credits: number;
+  status: string;
+  resources: number;
+  progress: number;
+}
 
 export function CoursesView() {
   const router = useRouter();
-  const courses = mockCourses;
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const response = await apiGet('/student/courses');
+        const data = await response.json();
+        setCourses(data);
+      } catch (err) {
+        setError("Failed to load courses");
+        console.error("Courses fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-lg">Loading courses...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div>
         <h2 className="text-3xl font-bold text-foreground">My Courses</h2>
-        <p className="text-muted-foreground mt-1">You are enrolled in 5 courses this semester</p>
+        <p className="text-muted-foreground mt-1">You are enrolled in {courses.length} courses this semester</p>
       </div>
 
       <div className="grid gap-4">

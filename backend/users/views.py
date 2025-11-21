@@ -2,7 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, logout as django_logout
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
+from django.utils import timezone
 import json
 from .models import User, Student, Faculty, Admin
 
@@ -31,9 +32,9 @@ def login_view(request):
                 except User.DoesNotExist:
                     pass
             
-            # If user found, check password
-            if user and user.check_password(password):
-                # Return user data and token (in a real app, you would generate a proper JWT token)
+            # If user found, check password and ensure user is active
+            if user and check_password(password, user.password) and user.status == 'active':
+                # Return user data and token
                 user_data = {
                     'id': user.id,
                     'username': user.username,
@@ -44,20 +45,44 @@ def login_view(request):
                     'status': user.status
                 }
                 
-                # Include additional faculty information if user is faculty
+                # Include additional role-specific information
                 if user.role == 'faculty':
                     try:
                         faculty_profile = Faculty.objects.get(user=user)
                         user_data['department'] = faculty_profile.department
                         user_data['employee_id'] = faculty_profile.employee_id
+                        user_data['title'] = faculty_profile.title
                     except Faculty.DoesNotExist:
                         pass
+                elif user.role == 'student':
+                    try:
+                        student_profile = Student.objects.get(user=user)
+                        user_data['student_id'] = student_profile.student_id
+                        user_data['degree_program'] = student_profile.degree_program
+                    except Student.DoesNotExist:
+                        pass
+                elif user.role == 'admin':
+                    try:
+                        admin_profile = Admin.objects.get(user=user)
+                        user_data['employee_id'] = admin_profile.employee_id
+                        user_data['department'] = admin_profile.department
+                    except Admin.DoesNotExist:
+                        pass
+                
+                # Update last login
+                user.last_login = timezone.now()
+                user.save()
                 
                 return JsonResponse({
                     'success': True,
                     'user': user_data,
-                    'token': f"fake-jwt-token-for-{user.username}-role-{user.role}"  # Include role in token for middleware
+                    'token': f"jwt-token-for-{user.username}-role-{user.role}"
                 })
+            elif user and user.status != 'active':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Account is not active. Please contact administrator.'
+                }, status=403)
             else:
                 return JsonResponse({
                     'success': False,

@@ -10,6 +10,13 @@ import {
   Calendar,
   MessageCircle,
   Cog,
+  Phone,
+  Bell,
+  Target,
+  User,
+  CreditCard,
+  Users,
+  Calculator,
 } from "lucide-react";
 import { StudentTopNav } from "@/components/student/TopNav";
 import { StudentSidebar } from "@/components/student/Sidebar";
@@ -21,6 +28,13 @@ import { LibraryView } from "@/components/student/LibraryView";
 import { CalendarView } from "@/components/student/CalendarView";
 import { MessagesView } from "@/components/student/MessagesView";
 import { SettingsView } from "@/components/student/SettingsView";
+import { EmergencyContactView } from "@/components/student/EmergencyContactView";
+import { NotificationPreferencesView } from "@/components/student/NotificationPreferencesView";
+import { DegreePlanningView } from "@/components/student/DegreePlanningView";
+import { AdvisorCommunicationView } from "@/components/student/AdvisorCommunicationView";
+import { FinanceServicesView } from "@/components/student/FinanceServicesView";
+import { CampusLifeView } from "@/components/student/CampusLifeView";
+import { CGPACalculatorView } from "@/components/student/CGPACalculatorView";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 type StudentView =
@@ -31,7 +45,14 @@ type StudentView =
   | "library"
   | "calendar"
   | "messages"
-  | "settings";
+  | "settings"
+  | "emergency"
+  | "notifications"
+  | "degree-planning"
+  | "advisor"
+  | "finance"
+  | "campus-life"
+  | "cgpa-calculator";
 type NavItem = { id: StudentView; label: string; icon: ComponentType<{ size?: number }> };
 
 const studentNavItems: NavItem[] = [
@@ -42,6 +63,13 @@ const studentNavItems: NavItem[] = [
   { id: "library", label: "Library", icon: Library },
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "messages", label: "Messages", icon: MessageCircle },
+  { id: "emergency", label: "Emergency Contacts", icon: Phone },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "degree-planning", label: "Degree Planning", icon: Target },
+  { id: "advisor", label: "Advisor", icon: User },
+  { id: "finance", label: "Finance", icon: CreditCard },
+  { id: "campus-life", label: "Campus Life", icon: Users },
+  { id: "cgpa-calculator", label: "CGPA Calculator", icon: Calculator },
   { id: "settings", label: "Settings", icon: Cog },
 ];
 
@@ -77,6 +105,20 @@ export default function StudentDashboardPage() {
         return <CalendarView />;
       case "messages":
         return <MessagesView />;
+      case "emergency":
+        return <EmergencyContactView />;
+      case "notifications":
+        return <NotificationPreferencesView />;
+      case "degree-planning":
+        return <DegreePlanningView />;
+      case "advisor":
+        return <AdvisorCommunicationView />;
+      case "finance":
+        return <FinanceServicesView />;
+      case "campus-life":
+        return <CampusLifeView />;
+      case "cgpa-calculator":
+        return <CGPACalculatorView />;
       case "settings":
         return <SettingsView />;
       default:

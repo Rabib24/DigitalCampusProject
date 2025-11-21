@@ -28,7 +28,7 @@ class User(AbstractUser):
     sso_id = models.CharField(max_length=100, blank=True)
     mfa_enabled = models.BooleanField()
     last_password_change = models.DateTimeField(null=True, blank=True)
-    failed_login_attempts = models.IntegerField()
+    failed_login_attempts = models.IntegerField(default=0)
     locked_until = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
@@ -88,9 +88,87 @@ class User(AbstractUser):
         return []
     
     def get_permissions(self):
-        """Get user permissions based on role"""
-        # This would be implemented based on role-based access control
-        return []
+        """Get user permissions based on role and specific assignments"""
+        from permissions.models import Permission, UserPermission, RolePermission
+        
+        # Get permissions from role templates
+        role_permissions = RolePermission.objects.filter(role=self.role).select_related('permission')
+        permissions = {rp.permission.codename: rp.permission for rp in role_permissions}
+        
+        # Get user-specific permissions
+        user_permissions = UserPermission.objects.filter(user=self).select_related('permission')
+        for up in user_permissions:
+            if up.is_active():
+                permissions[up.permission.codename] = up.permission
+        
+        return list(permissions.values())
+    
+    def has_permission(self, codename):
+        """Check if user has a specific permission"""
+        from permissions.models import Permission, UserPermission, RolePermission
+        
+        # Check role-based permissions
+        role_perms = RolePermission.objects.filter(role=self.role).select_related('permission')
+        if role_perms.filter(permission__codename=codename).exists():
+            return True
+        
+        # Check user-specific permissions
+        user_perms = UserPermission.objects.filter(user=self).select_related('permission')
+        for up in user_perms:
+            if up.is_active() and up.permission.codename == codename:
+                return True
+        
+        return False
+    
+    def has_attribute_permission(self, codename, attributes=None):
+        """Check if user has a specific permission with given attributes"""
+        from permissions.models import Permission, UserPermission, RolePermission
+        
+        # Check role-based permissions with attribute scope
+        role_perms = RolePermission.objects.filter(role=self.role).select_related('permission')
+        for rp in role_perms:
+            if rp.permission.codename == codename:
+                # If no specific attributes required, role permission is sufficient
+                if not attributes:
+                    return True
+                
+                # Check if role permission scope matches attributes
+                if self._matches_scope(rp.scope_template, attributes):
+                    return True
+        
+        # Check user-specific permissions with attribute scope
+        user_perms = UserPermission.objects.filter(user=self).select_related('permission')
+        for up in user_perms:
+            if up.is_active() and up.permission.codename == codename:
+                # If no specific attributes required, user permission is sufficient
+                if not attributes:
+                    return True
+                
+                # Check if user permission scope matches attributes
+                if self._matches_scope(up.scope, attributes):
+                    return True
+        
+        return False
+    
+    def _matches_scope(self, scope, attributes):
+        """Check if permission scope matches given attributes"""
+        if not scope or not attributes:
+            return True
+        
+        # Check each scope condition
+        for key, value in scope.items():
+            if key in attributes:
+                attr_value = attributes[key]
+                # Handle list values (e.g., department: ['CS', 'EE'])
+                if isinstance(value, list):
+                    if attr_value not in value:
+                        return False
+                # Handle single values
+                else:
+                    if attr_value != value:
+                        return False
+        
+        return True
     
     def to_json(self):
         """Convert user to JSON format"""
