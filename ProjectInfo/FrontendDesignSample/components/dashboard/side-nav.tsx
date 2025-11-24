@@ -1,6 +1,8 @@
-"use client"
+// components/SideNav.tsx
+"use client";
 
-import { Button } from "@/components/ui/button"
+import React from "react";
+import { Button } from "@/components/ui/button";
 import {
   BarChart3,
   BookOpen,
@@ -20,9 +22,18 @@ import {
   AlertCircle,
   Award,
   DollarSign,
-} from "lucide-react"
+  FileText,
+  CheckCircle,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const studentNavItems = [
+interface NavItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+const studentNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "courses", label: "My Courses", icon: BookOpen },
   { id: "assignments", label: "Assignments", icon: ClipboardList },
@@ -31,9 +42,9 @@ const studentNavItems = [
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "messages", label: "Messages", icon: MessageCircle },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-const facultyNavItems = [
+const facultyNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "courses", label: "My Classes", icon: BookOpen },
   { id: "gradebook", label: "Gradebook", icon: PieChart },
@@ -43,18 +54,18 @@ const facultyNavItems = [
   { id: "research", label: "Research", icon: BookMarked },
   { id: "analytics", label: "Analytics", icon: TrendingUp },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-const advisorNavItems = [
+const advisorNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "advisees", label: "My Advisees", icon: Users },
   { id: "appointments", label: "Appointments", icon: Calendar },
   { id: "cgpa-simulator", label: "CGPA Simulator", icon: PieChart },
   { id: "milestones", label: "Milestones", icon: ClipboardList },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-const adminNavItems = [
+const adminNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "courses", label: "Courses", icon: BookOpen },
   { id: "timetable", label: "Timetable", icon: Calendar },
@@ -64,9 +75,9 @@ const adminNavItems = [
   { id: "requests", label: "Requests", icon: ClipboardList },
   { id: "analytics", label: "Analytics", icon: PieChart },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-const financeNavItems = [
+const financeNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "invoices", label: "Invoices", icon: FileText },
   { id: "payments", label: "Payments", icon: DollarSign },
@@ -74,9 +85,9 @@ const financeNavItems = [
   { id: "billing", label: "Billing History", icon: ClipboardList },
   { id: "analytics", label: "Analytics", icon: PieChart },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-const libraryNavItems = [
+const libraryNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "catalog", label: "Catalog", icon: BookOpen },
   { id: "loans", label: "Loans", icon: Briefcase },
@@ -85,9 +96,9 @@ const libraryNavItems = [
   { id: "overdue", label: "Overdue Items", icon: AlertCircle },
   { id: "analytics", label: "Analytics", icon: PieChart },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-const researchNavItems = [
+const researchNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "approvals", label: "Project Approvals", icon: CheckCircle },
   { id: "grants", label: "Grants", icon: DollarSign },
@@ -95,9 +106,9 @@ const researchNavItems = [
   { id: "ethics", label: "Ethics Approval", icon: Shield },
   { id: "analytics", label: "Analytics", icon: TrendingUp },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-const itAdminNavItems = [
+const itAdminNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "users", label: "Users", icon: Users },
   { id: "security", label: "Security", icon: Shield },
@@ -106,47 +117,47 @@ const itAdminNavItems = [
   { id: "logs", label: "Logs", icon: ClipboardList },
   { id: "integrations", label: "Integrations", icon: Briefcase },
   { id: "settings", label: "Settings", icon: Cog },
-]
+];
 
-import { FileText, CheckCircle } from "lucide-react"
+interface SideNavProps {
+  activeView: string;
+  onViewChange: (view: string) => void;
+  userRole?: "student" | "faculty" | "admin" | "library" | "it-admin" | "advisor" | "finance" | "research";
+}
 
 export function SideNav({
   activeView,
   onViewChange,
   userRole = "student",
-}: {
-  activeView: string
-  onViewChange: (view: string) => void
-  userRole?: "student" | "faculty" | "admin" | "library" | "it-admin" | "advisor" | "finance" | "research"
-}) {
+}: SideNavProps) {
   const getNavItems = () => {
     switch (userRole) {
       case "faculty":
-        return facultyNavItems
+        return facultyNavItems;
       case "advisor":
-        return advisorNavItems
+        return advisorNavItems;
       case "admin":
-        return adminNavItems
+        return adminNavItems;
       case "finance":
-        return financeNavItems
+        return financeNavItems;
       case "library":
-        return libraryNavItems
+        return libraryNavItems;
       case "research":
-        return researchNavItems
+        return researchNavItems;
       case "it-admin":
-        return itAdminNavItems
+        return itAdminNavItems;
       default:
-        return studentNavItems
+        return studentNavItems;
     }
-  }
+  };
 
-  const navItems = getNavItems()
+  const navItems = getNavItems();
 
   return (
-    <aside className="h-[calc(100vh-80px)] overflow-y-auto rounded-lg border border-border bg-card p-4 md:sticky md:top-20">
-      <nav className="space-y-2">
+    <aside className="w-64 h-screen sticky top-0 overflow-y-auto rounded-lg border border-border bg-card p-4">
+      <div className="flex flex-col space-y-2 w-full">
         {navItems.map((item) => {
-          const Icon = item.icon
+          const Icon = item.icon;
           return (
             <Button
               key={item.id}
@@ -157,9 +168,11 @@ export function SideNav({
               <Icon size={18} />
               <span>{item.label}</span>
             </Button>
-          )
+          );
         })}
-      </nav>
+      </div>
     </aside>
-  )
+  );
 }
+
+export default SideNav;

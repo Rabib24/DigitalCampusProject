@@ -2,16 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { clearAuthData } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
 export function ITAdminLogoutButton() {
-  const { logout } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      await logout();
+      // Clear authentication data from localStorage
+      clearAuthData();
+      // Redirect to login page
       router.push('/login');
     } catch (error) {
       console.error("Logout failed:", error);

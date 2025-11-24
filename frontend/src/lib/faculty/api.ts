@@ -5,13 +5,31 @@ import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
 // Dashboard Overview
 export const getFacultyDashboardOverview = async () => {
   try {
+    console.log("Making request to /faculty/dashboard/overview/");
     const response = await apiGet('/faculty/dashboard/overview/');
+    console.log("Received response from /faculty/dashboard/overview/:", response.status, response.statusText);
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch dashboard overview');
+      const errorData = await response.json().catch(() => ({}));
+      console.log("Error data from /faculty/dashboard/overview/:", errorData);
+      
+      // Handle specific error cases
+      if (response.status === 403) {
+        throw new Error("Insufficient permissions to access dashboard overview");
+      }
+      
+      const errorMessage = errorData.message || `Failed to fetch dashboard overview: ${response.status} ${response.statusText}`;
+      throw new Error(errorMessage);
     }
-    return await response.json();
+    
+    const data = await response.json();
+    console.log("Parsed JSON data from /faculty/dashboard/overview/:", data);
+    return data;
   } catch (error) {
     console.error('Error fetching faculty dashboard overview:', error);
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('Network error: Unable to connect to the server. Please check your connection and try again.');
+    }
     throw error;
   }
 };
@@ -456,6 +474,84 @@ export const getFacultyRecordings = async () => {
   }
 };
 
+export const getFacultyRecordingDetail = async (recordingId: string) => {
+  try {
+    const response = await apiGet(`/faculty/recordings/${recordingId}/`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch recording details');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching recording ${recordingId} details:`, error);
+    throw error;
+  }
+};
+
+export const createFacultyRecording = async (recordingData: Record<string, unknown>) => {
+  try {
+    const response = await apiPost('/faculty/recordings/create/', recordingData);
+    if (!response.ok) {
+      throw new Error('Failed to create recording');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating recording:', error);
+    throw error;
+  }
+};
+
+export const updateFacultyRecording = async (recordingId: string, recordingData: Record<string, unknown>) => {
+  try {
+    const response = await apiPut(`/faculty/recordings/${recordingId}/update/`, recordingData);
+    if (!response.ok) {
+      throw new Error('Failed to update recording');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error updating recording ${recordingId}:`, error);
+    throw error;
+  }
+};
+
+export const deleteFacultyRecording = async (recordingId: string) => {
+  try {
+    const response = await apiDelete(`/faculty/recordings/${recordingId}/delete/`);
+    if (!response.ok) {
+      throw new Error('Failed to delete recording');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error deleting recording ${recordingId}:`, error);
+    throw error;
+  }
+};
+
+export const incrementRecordingViewCount = async (recordingId: string) => {
+  try {
+    const response = await apiPost(`/faculty/recordings/${recordingId}/view/`, {});
+    if (!response.ok) {
+      throw new Error('Failed to increment view count');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error incrementing view count for recording ${recordingId}:`, error);
+    throw error;
+  }
+};
+
+export const incrementRecordingDownloadCount = async (recordingId: string) => {
+  try {
+    const response = await apiPost(`/faculty/recordings/${recordingId}/download/`, {});
+    if (!response.ok) {
+      throw new Error('Failed to increment download count');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error incrementing download count for recording ${recordingId}:`, error);
+    throw error;
+  }
+};
+
 // Publication Management
 export const getFacultyPublications = async () => {
   try {
@@ -741,6 +837,59 @@ export const sendCollaborationMessage = async (collaborationId: string, messageD
     return await response.json();
   } catch (error) {
     console.error(`Error sending message to collaboration ${collaborationId}:`, error);
+    throw error;
+  }
+};
+
+// Faculty Profile and Settings
+export const getFacultyProfile = async () => {
+  try {
+    const response = await apiGet('/faculty/profile/');
+    if (!response.ok) {
+      throw new Error('Failed to fetch faculty profile');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching faculty profile:', error);
+    throw error;
+  }
+};
+
+export const updateFacultyProfile = async (profileData: Record<string, unknown>) => {
+  try {
+    const response = await apiPut('/faculty/profile/update/', profileData);
+    if (!response.ok) {
+      throw new Error('Failed to update faculty profile');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating faculty profile:', error);
+    throw error;
+  }
+};
+
+export const getFacultySettings = async () => {
+  try {
+    const response = await apiGet('/faculty/settings/');
+    if (!response.ok) {
+      throw new Error('Failed to fetch faculty settings');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching faculty settings:', error);
+    throw error;
+  }
+};
+
+export const updateFacultySettings = async (settingsData: Record<string, unknown>) => {
+  try {
+    const response = await apiPut('/faculty/settings/update/', settingsData);
+    if (!response.ok) {
+      throw new Error('Failed to update faculty settings');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating faculty settings:', error);
     throw error;
   }
 };

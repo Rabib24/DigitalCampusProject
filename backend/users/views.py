@@ -4,7 +4,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, logout as django_logout
 from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
+from django.conf import settings
 import json
+import jwt
+from datetime import datetime, timedelta
 from .models import User, Student, Faculty, Admin
 
 @csrf_exempt
@@ -34,6 +37,21 @@ def login_view(request):
             
             # If user found, check password and ensure user is active
             if user and check_password(password, user.password) and user.status == 'active':
+                # Generate JWT token
+                now = timezone.now()
+                exp = now + timedelta(hours=24)  # Token expires in 24 hours
+                
+                payload = {
+                    'user_id': user.id,
+                    'username': user.username,
+                    'role': user.role,
+                    'exp': exp.timestamp(),
+                    'iat': now.timestamp()
+                }
+                
+                # Generate JWT token using Django's SECRET_KEY
+                token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+                
                 # Return user data and token
                 user_data = {
                     'id': user.id,
@@ -76,7 +94,7 @@ def login_view(request):
                 return JsonResponse({
                     'success': True,
                     'user': user_data,
-                    'token': f"jwt-token-for-{user.username}-role-{user.role}"
+                    'token': token
                 })
             elif user and user.status != 'active':
                 return JsonResponse({
@@ -161,12 +179,37 @@ def register_view(request):
 @csrf_exempt
 def logout_view(request):
     if request.method == 'POST':
-        # In a real app, you would invalidate the JWT token here
-        # For now, we'll just return a success response
-        return JsonResponse({
-            'success': True,
-            'message': 'Logged out successfully'
-        })
+        try:
+            # Extract token from Authorization header
+            auth_header = request.headers.get('Authorization', '')
+            
+            if not auth_header.startswith('Bearer '):
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No valid authorization token provided'
+                }, status=400)
+            
+            token = auth_header.split(' ')[1]
+            
+            # Add token to blacklist
+            from .token_blacklist import add_token_to_blacklist
+            
+            if add_token_to_blacklist(token):
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Logged out successfully'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Failed to logout. Token may be invalid or expired.'
+                }, status=400)
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': 'Logout failed'
+            }, status=500)
     
     return JsonResponse({
         'success': False,

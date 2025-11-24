@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-+##your-secret-key-here-keep-it-safe')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-+##yf4@(bzc4cmxwlqg-44*da87sqz%wb9zq132q93(aq5zzy+')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'users',
     'courses',
     'assignments',
@@ -60,11 +61,13 @@ INSTALLED_APPS = [
     'library_staff',
     'finance_admin',
     'it_admin',
+    'student',  # Add student app
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -73,7 +76,9 @@ MIDDLEWARE = [
     'users.middleware.JWTAuthenticationMiddleware',  # Fixed this line
     'faculty.middleware.FacultyRoleMiddleware',
     'admin_dashboard.middleware.AdminRoleMiddleware',
+    'student.middleware.StudentRoleMiddleware',  # Add student middleware
     'permissions.middleware.AttributeBasedPermissionMiddleware',
+    'security_config.SecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -159,3 +164,11 @@ AUTH_USER_MODEL = 'users.User'
 # Redis configuration
 REDIS_NODE_1_HOST = os.getenv('REDIS_NODE_1_HOST', 'localhost')
 REDIS_NODE_1_PORT = int(os.getenv('REDIS_NODE_1_PORT', 7001))
+
+# CORS configuration for local frontend on http://localhost:3000
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+]
+
+CORS_ALLOW_CREDENTIALS = True

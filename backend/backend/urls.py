@@ -24,6 +24,9 @@ api_v1_patterns = ([
     path('library/', include('library_staff.urls')),
     path('finance/', include('finance_admin.urls')),
     path('it/', include('it_admin.urls')),  # Add this line
+    path('search/', include('search_urls')),
+    path('security/', include('security_urls')),
+    path('student/', include('student.urls')),
 ], 'v1')
 
 urlpatterns = [

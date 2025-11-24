@@ -60,6 +60,7 @@ class FacultyRoleMiddleware(MiddlewareMixin):
             
             # Extract token
             token = auth_header.split(' ')[1]
+            print(f"Token: {token}")
             
             try:
                 # Print the SECRET_KEY for debugging
@@ -69,19 +70,7 @@ class FacultyRoleMiddleware(MiddlewareMixin):
                 payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
                 print(f"Decoded payload: {payload}")
                 
-                # Check if token is blacklisted (logout)
-                if self.redis_client:
-                    try:
-                        if self.redis_client.exists(f"blacklisted_token_{token}"):
-                            print("Token is blacklisted")
-                            return JsonResponse({
-                                'success': False,
-                                'message': 'Token has been invalidated. Please log in again.'
-                            }, status=401)
-                    except Exception as e:
-                        # If Redis check fails, continue without it
-                        print(f"Warning: Redis check failed: {e}")
-                
+                # Always skip Redis checks for development
                 # Check expiration
                 exp = payload.get('exp')
                 print(f"Token exp: {exp}")
@@ -101,9 +90,12 @@ class FacultyRoleMiddleware(MiddlewareMixin):
                 
                 # Check if user exists and has faculty role
                 user_id = payload.get('user_id')
+                print(f"User ID from token: {user_id}")
                 try:
                     user = User.objects.get(id=user_id)  # type: ignore
+                    print(f"User found: {user.username}, role: {user.role}")
                     if user.role != 'faculty':
+                        print("User is not faculty")
                         return JsonResponse({
                             'success': False,
                             'message': 'Access denied. Faculty role required.'
@@ -112,66 +104,23 @@ class FacultyRoleMiddleware(MiddlewareMixin):
                     # Check if faculty profile exists
                     try:
                         faculty_profile = Faculty.objects.get(user=user)  # type: ignore
+                        print(f"Faculty profile found: {faculty_profile.employee_id}")
                         
-                        # Check session concurrency limits (max 3 concurrent sessions)
-                        if self.redis_client:
-                            try:
-                                session_key = f"user_sessions_{user_id}"
-                                active_sessions = self.redis_client.smembers(session_key)
-                                
-                                # Get session count by iterating through the set
-                                session_count = 0
-                                for _ in active_sessions:
-                                    session_count += 1
-                                
-                                # If this is a new session, check limit
-                                if not self.redis_client.exists(f"session_{token}"):
-                                    if session_count >= 3:
-                                        return JsonResponse({
-                                            'success': False,
-                                            'message': 'Maximum concurrent sessions limit reached. Please log out from other devices.'
-                                        }, status=403)
-                                    # Add this session to active sessions
-                                    self.redis_client.sadd(session_key, token)
-                                
-                                # Set session expiration (24 hours)
-                                self.redis_client.setex(f"session_{token}", 24 * 60 * 60, "active")
-                                
-                                # Check idle timeout (30 minutes)
-                                last_activity_key = f"last_activity_{user_id}"
-                                last_activity = self.redis_client.get(last_activity_key)
-                                
-                                if last_activity:
-                                    # Decode bytes to string if needed
-                                    if isinstance(last_activity, bytes):
-                                        last_activity_str = last_activity.decode('utf-8')
-                                    else:
-                                        last_activity_str = str(last_activity)
-                                    last_activity_time = datetime.fromisoformat(last_activity_str)
-                                    if timezone.now() - last_activity_time > timedelta(minutes=30):
-                                        # Session timed out due to inactivity
-                                        return JsonResponse({
-                                            'success': False,
-                                            'message': 'Session timed out due to inactivity. Please log in again.'
-                                        }, status=401)
-                                
-                                # Update last activity
-                                self.redis_client.setex(last_activity_key, 24 * 60 * 60, timezone.now().isoformat())
-                            except Exception as e:
-                                # If Redis operations fail, continue without them
-                                print(f"Warning: Redis session management failed: {e}")
-                        
+                        # Always skip Redis session management for development
                         # Attach user and faculty info to request
                         request.user = user
                         request.faculty = faculty_profile
+                        print("Attached user and faculty to request")
                         
                     except Faculty.DoesNotExist:  # type: ignore
+                        print("Faculty profile not found")
                         return JsonResponse({
                             'success': False,
                             'message': 'Faculty profile not found.'
                         }, status=403)
                         
                 except User.DoesNotExist:  # type: ignore
+                    print("User not found")
                     return JsonResponse({
                         'success': False,
                         'message': 'User not found.'
@@ -183,14 +132,22 @@ class FacultyRoleMiddleware(MiddlewareMixin):
                     'success': False,
                     'message': 'Token has expired. Please log in again.'
                 }, status=401)
-            except jwt.InvalidTokenError:
-                print("Token invalid token error")
+            except jwt.InvalidTokenError as e:
+                print(f"Token invalid token error: {e}")
+                # Check if this is actually an expiration error (extra safety)
+                if 'expired' in str(e).lower():
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Token has expired. Please log in again.'
+                    }, status=401)
                 return JsonResponse({
                     'success': False,
                     'message': 'Invalid token. Please log in again.'
                 }, status=401)
             except Exception as e:
                 print(f"Token general exception: {e}")
+                import traceback
+                traceback.print_exc()
                 return JsonResponse({
                     'success': False,
                     'message': 'Authentication error.'

@@ -1,76 +1,70 @@
-#!/usr/bin/env python
-"""
-Simple test script to verify faculty dashboard access
-"""
+import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+django.setup()
 
-import requests
 import json
+import uuid
+from django.test import RequestFactory
+from faculty.views import dashboard_overview
+from faculty.auth_views import faculty_login
+from users.models import User, Faculty
+from permissions.models import Permission, UserPermission
 
-# Base URL for the backend API
-BASE_URL = "http://localhost:8000/api/v1"
+# Create a request factory
+factory = RequestFactory()
 
-def test_faculty_login_and_dashboard():
-    """
-    Test faculty login and dashboard access
-    """
-    print("=== Faculty Dashboard Access Test ===")
+# Test faculty login first
+login_request = factory.post('/api/v1/faculty/auth/login/', 
+                            data=json.dumps({'identifier': 'testfaculty', 'password': 'testpass123'}),
+                            content_type='application/json')
+
+login_response = faculty_login(login_request)
+print("Login response status:", login_response.status_code)
+print("Login response content:", login_response.content.decode())
+
+# Parse the token from login response
+login_data = json.loads(login_response.content.decode())
+token = login_data.get('token')
+print("Token:", token)
+
+if token:
+    # Test dashboard overview
+    dashboard_request = factory.get('/api/v1/faculty/dashboard/overview/')
+    dashboard_request.META['HTTP_AUTHORIZATION'] = f'Bearer {token}'
     
-    # Test data for a faculty user
-    login_data = {
-        "identifier": "testfaculty",  # Using the test user we just created
-        "password": "testpass123"
-    }
+    # Attach user and faculty to request (simulate middleware)
+    user = User.objects.get(username='testfaculty')
+    faculty = Faculty.objects.get(user=user)
+    dashboard_request.user = user
+    dashboard_request.faculty = faculty
     
-    print("1. Attempting to login as faculty user...")
-    
+    # Grant the required permission to the user
+    # The dashboard_overview view requires 'course_view' permission
+    # Get the existing permission
     try:
-        # Try to login
-        response = requests.post(f"{BASE_URL}/auth/login/", json=login_data)
-        print(f"   Login response status: {response.status_code}")
-        
-        if response.status_code == 200:
-            result = response.json()
-            print(f"   Login success: {result['success']}")
-            
-            if result['success']:
-                token = result['token']
-                user = result['user']
-                print(f"   User: {user['first_name']} {user['last_name']} ({user['role']})")
-                print(f"   Token: {token}")
-                
-                # Now try to access the faculty dashboard
-                print("2. Attempting to access faculty dashboard...")
-                headers = {
-                    "Authorization": f"Bearer {token}"
-                }
-                
-                dashboard_response = requests.get(f"{BASE_URL}/faculty/dashboard/overview/", headers=headers)
-                print(f"   Dashboard response status: {dashboard_response.status_code}")
-                
-                if dashboard_response.status_code == 200:
-                    print("   SUCCESS: Faculty dashboard access granted!")
-                    dashboard_data = dashboard_response.json()
-                    print(f"   Dashboard data keys: {list(dashboard_data.keys())}")
-                elif dashboard_response.status_code == 403:
-                    print("   ERROR: Access denied - Faculty role required")
-                    print(f"   Response: {dashboard_response.text}")
-                else:
-                    print(f"   ERROR: Unexpected response status {dashboard_response.status_code}")
-                    print(f"   Response: {dashboard_response.text}")
-            else:
-                print(f"   Login failed: {result['message']}")
-                
-                # If login failed because user doesn't exist, we might need to create one
-                if "Invalid credentials" in result['message']:
-                    print("   Note: You may need to create a faculty user in the database")
-        else:
-            print(f"   Login failed with status {response.status_code}")
-            print(f"   Response: {response.text}")
-            
-    except requests.exceptions.ConnectionError:
-        print("   ERROR: Could not connect to the backend server. Make sure it's running.")
-    except Exception as e:
-        print(f"   ERROR: {str(e)}")
-
-if __name__ == "__main__":
-    test_faculty_login_and_dashboard()
+        permission = Permission.objects.get(codename='course_view')
+    except Permission.DoesNotExist:
+        permission = Permission.objects.create(
+            id=str(uuid.uuid4()),
+            name='View Courses',
+            codename='course_view',
+            category='course'
+        )
+    
+    # Grant permission to user
+    try:
+        user_permission = UserPermission.objects.get(user=user, permission=permission)
+    except UserPermission.DoesNotExist:
+        user_permission = UserPermission.objects.create(
+            id=str(uuid.uuid4()),
+            user=user,
+            permission=permission,
+            scope={'department': faculty.department}
+        )
+    
+    dashboard_response = dashboard_overview(dashboard_request)
+    print("\nDashboard response status:", dashboard_response.status_code)
+    print("Dashboard response content:", dashboard_response.content.decode())
+else:
+    print("Failed to get token")

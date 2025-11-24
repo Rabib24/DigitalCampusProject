@@ -1,0 +1,235 @@
+# Student Course Enrollment Implementation Plan
+
+## Overview
+Currently, there is no student-facing course enrollment functionality in the Digital Campus system. Students cannot register for courses themselves - only faculty and administrators can manage enrollments. This document outlines the requirements and implementation plan for adding student course enrollment capabilities.
+
+## Current State Analysis
+- Faculty can enroll students in courses via faculty/course_views.py endpoints
+- Admin can manage courses and enrollments via admin_dashboard/views.py
+- No student-specific endpoints for course enrollment exist
+- No student-facing UI for course registration/browse functionality
+- Student dashboard shows enrolled courses but has no enrollment capability
+
+## Process Description and Role-Based Controls
+
+### Administrative Role (Admin)
+- Manages the course enrollment timetable and registration periods
+- Sets enrollment start/end dates for different student groups (freshmen, sophomores, etc.)
+- Assigns faculty members to specific courses and sections
+- Manages course capacity limits and waitlist thresholds
+- Oversees enrollment statistics and generates reports
+- Handles special enrollment cases and overrides
+- Manages academic calendar integration for registration periods
+
+### Faculty Role
+- Assigned to specific courses and sections by administrators
+- Can view enrollment statistics for their courses
+- Can manually add/drop students from their courses
+- Can manage waitlists for their courses
+- Can approve special enrollment requests
+- Can view student academic records for enrollment decisions
+
+### Student Role
+- Can browse available courses during registration periods
+- Can enroll in courses that meet prerequisites
+- Can add courses to a registration cart for batch enrollment
+- Can drop courses during allowed periods
+- Can view waitlist status for full courses
+- Can see schedule conflicts before enrolling
+- Can view their current enrollment status and schedule
+
+## Enrollment Process Workflow
+
+### 1. Registration Period Management
+- Admin sets registration periods in the academic calendar
+- System validates current date against registration periods
+- Students can only enroll during active registration periods
+- Different periods for different student groups (priority enrollment)
+
+### 2. Course Browsing and Selection
+- Students browse courses by department, semester, or search
+- System displays course details including faculty, schedule, prerequisites
+- Students can add courses to their registration cart
+- Real-time availability updates shown
+
+### 3. Enrollment Validation
+- Prerequisite checking against student's academic record
+- Schedule conflict detection with currently enrolled courses
+- Capacity checking for course sections
+- Academic standing validation for restricted courses
+- Enrollment limit checking per student
+
+### 4. Enrollment Execution
+- Student confirms enrollment from cart
+- System processes enrollments in order
+- Waitlist management for full courses
+- Automatic notifications for enrollment status changes
+- Audit logging of all enrollment actions
+
+### 5. Post-Enrollment Management
+- Students can drop courses during allowed periods
+- Waitlisted students automatically enrolled as spots open
+- Faculty can manage their course rosters
+- Admin can generate enrollment reports and statistics
+
+## Required Backend Implementation
+
+### 1. Student Course Enrollment API Endpoints
+- [x] Create /api/student/courses/available/ GET endpoint to list available courses for enrollment
+- [x] Create /api/student/courses/search/ GET endpoint to search courses
+- [x] Create /api/student/courses/recommended/ GET endpoint to get recommended courses
+- [x] Create /api/student/courses/{course_id}/enroll/ POST endpoint for student self-enrollment
+- [x] Create /api/student/courses/{course_id}/drop/ DELETE endpoint for dropping enrolled courses
+- [x] Create /api/student/courses/waitlist/ GET endpoint to view waitlisted courses
+- [x] Create /api/student/enrollment/cart/ endpoints for course registration cart functionality
+
+### 2. Student Course Enrollment Business Logic
+- [x] Implement course availability checking (prerequisites, schedule conflicts, etc.)
+- [x] Add student enrollment limit validation
+- [x] Implement waitlist functionality for full courses
+- [x] Add course prerequisite validation
+- [x] Implement schedule conflict detection
+- [x] Add academic standing/course restriction checking
+- [x] Implement enrollment period validation (registration windows)
+
+### 3. Administrative Course Management
+- [x] Create /api/student/admin/enrollment/periods/ endpoints for managing registration periods
+- [ ] Create /api/admin/courses/{course_id}/faculty/ endpoints for faculty assignment
+- [ ] Create /api/admin/enrollment/reports/ endpoints for enrollment statistics
+- [ ] Create /api/admin/enrollment/overrides/ endpoints for special cases
+
+### 4. Faculty Course Management
+- [ ] Create /api/faculty/courses/{course_id}/enrollment/ endpoints for enrollment management
+- [ ] Create /api/faculty/courses/{course_id}/waitlist/ endpoints for waitlist management
+- [ ] Create /api/faculty/courses/{course_id}/roster/ endpoints for class rosters
+
+### 5. Student Course Browsing Features
+- [x] Create course search and filtering functionality
+- [ ] Implement course catalog browsing by department/category
+- [ ] Add course detail views with full information
+- [x] Implement course recommendation engine based on major/interests
+
+## Required Frontend Implementation
+
+### 1. Student Course Registration UI Components
+- [ ] Create Course Catalog Browser component
+- [ ] Create Course Search and Filter component
+- [ ] Create Course Detail modal/view
+- [ ] Create Enrollment Cart component
+- [ ] Create Registration Confirmation workflow
+- [ ] Create Waitlist status indicators
+- [ ] Create Schedule conflict warnings
+
+### 2. Administrative UI Components
+- [ ] Create Registration Period Management interface
+- [ ] Create Faculty Assignment interface
+- [ ] Create Enrollment Reporting dashboard
+- [ ] Create Special Enrollment Override interface
+
+### 3. Faculty UI Components
+- [ ] Create Course Enrollment Management interface
+- [ ] Create Waitlist Management interface
+- [ ] Create Class Roster viewer
+
+### 4. Student Dashboard Integration
+- [ ] Add "Register for Courses" navigation item
+- [ ] Create Course Registration main page
+- [ ] Add enrollment status indicators to existing CoursesView
+- [ ] Implement registration period notifications
+
+### 5. Student API Service Layer
+- [ ] Create student/course-enrollment.ts API service
+- [ ] Implement all student enrollment endpoints
+- [ ] Add proper error handling and user feedback
+- [ ] Add loading states for async operations
+
+## Database Considerations
+- [ ] Extend Enrollment model if needed for student-specific data
+- [ ] Add course registration period tracking
+- [ ] Implement course prerequisite relationships
+- [ ] Add student enrollment history tracking
+- [ ] Add faculty course assignment tracking
+
+## Security & Access Control
+- [x] Implement proper student authentication for enrollment endpoints
+- [ ] Add rate limiting for enrollment requests
+- [ ] Implement audit logging for all enrollment actions
+- [ ] Add faculty/advisor approval workflow for special cases
+- [x] Ensure role-based access control for all endpoints
+
+## Testing Requirements
+- [x] Unit tests for enrollment business logic
+- [ ] Integration tests for API endpoints
+- [ ] UI component tests for registration workflow
+- [ ] End-to-end tests for complete enrollment flow
+- [ ] Performance tests for high-concurrency registration periods
+- [ ] Security tests for access control validation
+
+## Process Verification
+
+### Verification Steps for Administrative Functions
+1. Admin can successfully set registration periods
+2. Registration periods are properly enforced for students
+3. Admin can assign faculty to courses and sections
+4. Faculty assignments are correctly reflected in course details
+5. Admin can generate enrollment reports with accurate data
+
+### Verification Steps for Faculty Functions
+1. Faculty can view their assigned courses
+2. Faculty can manage enrollment for their courses
+3. Faculty can manage waitlists for their courses
+4. Faculty can view accurate class rosters
+5. Faculty actions are properly logged and tracked
+
+### Verification Steps for Student Functions
+1. Students can only enroll during active registration periods
+2. Students can browse available courses with correct information
+3. Prerequisite checking works correctly
+4. Schedule conflict detection prevents invalid enrollments
+5. Waitlist functionality works as expected
+6. Students can successfully enroll in available courses
+7. Students can drop courses during allowed periods
+8. Enrollment changes are properly reflected in student records
+
+## Implementation Priority
+
+### Phase 1: Basic Enrollment Functionality
+1. [x] Create student enrollment API endpoints
+2. [x] Implement core enrollment business logic
+3. [ ] Create basic course browsing UI
+4. [ ] Add enrollment capability to student dashboard
+
+### Phase 2: Role-Based Management Features
+1. [ ] Implement administrative enrollment management
+2. [ ] Create faculty enrollment management interfaces
+3. [ ] Add registration period management
+4. [ ] Implement faculty assignment functionality
+
+### Phase 3: Advanced Features
+1. [x] Implement course cart functionality
+2. [x] Add prerequisite checking
+3. [x] Implement schedule conflict detection
+4. [ ] Add waitlist management UI
+
+### Phase 4: Enhancement & Optimization
+1. [ ] Add course recommendations
+2. [ ] Implement advanced search/filtering
+3. [ ] Add performance optimizations
+4. [ ] Implement comprehensive error handling
+
+## Dependencies
+- Existing Course and Enrollment models
+- Student authentication system
+- Faculty course management endpoints (for reference)
+- Admin course management system (for reference)
+
+## Success Metrics
+- Students can successfully enroll in available courses
+- Proper error handling for enrollment restrictions
+- Waitlist functionality works correctly
+- UI provides clear feedback during enrollment process
+- System handles concurrent enrollment requests appropriately
+- All role-based access controls function correctly
+- Administrative functions work as expected
+- Faculty management tools are functional
+- Process verification steps pass successfully

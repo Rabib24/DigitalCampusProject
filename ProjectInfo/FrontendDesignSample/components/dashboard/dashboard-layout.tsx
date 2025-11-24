@@ -106,8 +106,10 @@ export function DashboardLayout({
 
       <div className="flex gap-0 md:gap-4 p-0 md:p-4">
         {/* Sidebar */}
-        <div className={`${sidebarOpen ? "block" : "hidden"} w-full md:block md:w-64 flex-shrink-0`}>
-          <SideNav activeView={activeView} onViewChange={onViewChange} userRole={userRole} />
+        <div className={`${sidebarOpen ? "fixed inset-0 z-30 bg-black/50 md:bg-transparent" : "hidden"} md:static md:block md:w-64`}>
+          <div className={`${sidebarOpen ? "fixed left-0 top-0 z-40 h-full w-64" : "hidden"} md:sticky md:top-20 md:block md:h-[calc(100vh-80px)]`}>
+            <SideNav activeView={activeView} onViewChange={onViewChange} userRole={userRole} />
+          </div>
         </div>
 
         {/* Main Content */}

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, BookOpen, Users, FileText, Video, BarChart3, PieChart, Calendar, MessageCircle, Loader2 } from "lucide-react";
+import { AlertCircle, BookOpen, Users, FileText, Video, BarChart3, PieChart, Calendar, MessageCircle, Loader2, RefreshCw, ShieldAlert } from "lucide-react";
 import { getFacultyDashboardOverview } from "@/lib/faculty/api";
 
 interface PendingAssignment {
@@ -30,38 +30,67 @@ export function FacultyDashboardView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchOverview = async () => {
-      try {
-        setLoading(true);
-        const data = await getFacultyDashboardOverview();
-        setOverview(data);
-      } catch (err) {
-        setError("Failed to load dashboard data");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchOverview = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log("Fetching faculty dashboard overview...");
+      const data = await getFacultyDashboardOverview();
+      console.log("Received dashboard data:", data);
+      setOverview(data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to load dashboard data";
+      console.error("Dashboard fetch error:", err);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchOverview();
   }, []);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="text-muted-foreground">Loading dashboard data...</p>
       </div>
     );
   }
 
   if (error) {
+    // Check if it's a permission error
+    const isPermissionError = error.includes("permission") || error.includes("Forbidden") || error.includes("403");
+    
     return (
       <div className="p-4">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription className="flex flex-col gap-2">
+            {isPermissionError ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5" />
+                  <span>Insufficient Permissions</span>
+                </div>
+                <p>You don{`'`}t have the required permissions to view this dashboard.</p>
+                <p className="text-sm">Contact your administrator to grant you the necessary permissions.</p>
+              </>
+            ) : (
+              <span>{error}</span>
+            )}
+            <Button 
+              variant="outline" 
+              className="w-fit mt-2"
+              onClick={fetchOverview}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </AlertDescription>
         </Alert>
       </div>
     );

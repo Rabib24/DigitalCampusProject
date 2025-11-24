@@ -169,7 +169,13 @@ class AdminRoleMiddleware(MiddlewareMixin):
                     'success': False,
                     'message': 'Token has expired. Please log in again.'
                 }, status=401)
-            except jwt.InvalidTokenError:
+            except jwt.InvalidTokenError as e:
+                # Check if this is actually an expiration error (extra safety)
+                if 'expired' in str(e).lower():
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Token has expired. Please log in again.'
+                    }, status=401)
                 return JsonResponse({
                     'success': False,
                     'message': 'Invalid token. Please log in again.'

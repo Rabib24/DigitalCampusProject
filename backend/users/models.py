@@ -238,21 +238,6 @@ class Student(models.Model):
     def add_course(self, course):
         """Add a course to the student's courses"""
         if self.courses is None:
-            self.courses = []
-        if isinstance(self.courses, list):
-            self.courses.append(course)
-        self.save()
-    
-    def calculate_gpa(self):
-        """Calculate the student's GPA"""
-        # This would be implemented with actual grade calculations
-        return self.cumulative_gpa
-    
-    def to_json(self):
-        """Convert student to JSON format"""
-        # Convert date fields to string representations
-        graduation_date_str = None
-        try:
             if self.graduation_date:
                 graduation_date_str = str(self.graduation_date)
         except:

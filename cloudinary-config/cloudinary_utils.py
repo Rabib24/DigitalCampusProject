@@ -2,6 +2,10 @@
 Utility functions for Cloudinary operations in the Digital Campus project.
 """
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 def get_cloudinary_config():
     """
     Get Cloudinary configuration from Django settings.

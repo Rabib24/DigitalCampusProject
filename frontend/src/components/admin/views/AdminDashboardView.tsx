@@ -10,36 +10,42 @@ export function AdminDashboardView() {
       value: "1,247",
       description: "+12% from last month",
       icon: Users,
+      color: "bg-blue-500",
     },
     {
       title: "Active Courses",
       value: "89",
       description: "+5% from last month",
       icon: BookOpen,
+      color: "bg-indigo-500",
     },
     {
       title: "Total Payments",
       value: "$45,231",
       description: "+18% from last month",
       icon: DollarSign,
+      color: "bg-teal-500",
     },
     {
       title: "Pending Requests",
       value: "24",
       description: "+3 from last week",
       icon: FileText,
+      color: "bg-amber-500",
     },
     {
       title: "System Health",
       value: "98%",
       description: "All systems operational",
       icon: BarChart3,
+      color: "bg-emerald-500",
     },
     {
       title: "Security Alerts",
       value: "0",
       description: "No active threats",
       icon: Shield,
+      color: "bg-purple-500",
     },
   ];
 
@@ -48,18 +54,20 @@ export function AdminDashboardView() {
       <div>
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back! Here's what's happening with your system today.
+          Welcome back! Here&apos;s what&apos;s happening with your system today.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat, index) => (
-          <Card key={index}>
+          <Card key={index} className="border border-border bg-dashboard-card hover:bg-dashboard-card-hover transition-all duration-300 shadow-sm hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
               </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <div className={`p-2 rounded-lg ${stat.color} text-white`}>
+                <stat.icon className="h-4 w-4" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
@@ -72,7 +80,7 @@ export function AdminDashboardView() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        <Card className="border border-border bg-dashboard-card hover:bg-dashboard-card-hover transition-all duration-300">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
             <CardDescription>
@@ -101,7 +109,7 @@ export function AdminDashboardView() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-border bg-dashboard-card hover:bg-dashboard-card-hover transition-all duration-300">
           <CardHeader>
             <CardTitle>System Status</CardTitle>
             <CardDescription>
@@ -122,7 +130,7 @@ export function AdminDashboardView() {
                     <p className="text-xs text-muted-foreground">{item.uptime} uptime</p>
                   </div>
                   <div className="flex items-center">
-                    <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2"></div>
                     <span className="text-xs">{item.status}</span>
                   </div>
                 </div>
