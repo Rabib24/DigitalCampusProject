@@ -47,8 +47,8 @@ export default function LoginPage() {
 
     try {
       // Determine the correct endpoint based on the selected role
-      const endpoint = selectedRole === 'faculty' 
-        ? "http://localhost:8000/api/v1/faculty/auth/login/" 
+      const endpoint = selectedRole === 'faculty'
+        ? "http://localhost:8000/api/v1/faculty/auth/login/"
         : "http://localhost:8000/api/v1/auth/login/";
 
       const response = await fetch(endpoint, {
@@ -75,7 +75,7 @@ export default function LoginPage() {
       if (data.success) {
         // Save authentication data
         saveAuthData(data.token, data.user);
-        
+
         // Redirect based on role from user data
         const roleMap: Record<string, string> = {
           student: "/student",
@@ -174,7 +174,7 @@ export default function LoginPage() {
                     {error}
                   </div>
                 )}
-                
+
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium">
                     Email or Username

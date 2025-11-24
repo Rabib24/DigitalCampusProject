@@ -7,7 +7,8 @@ export const useLogout = () => {
   const logout = async () => {
     try {
       // Call backend logout endpoint
-      await fetch('http://localhost:8000/api/v1/auth/logout/', {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+      await fetch(`${baseUrl}/api/v1/auth/logout/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -18,7 +19,7 @@ export const useLogout = () => {
     } finally {
       // Clear authentication data locally
       clearAuthData();
-      
+
       // Redirect to login page
       router.push('/login');
     }

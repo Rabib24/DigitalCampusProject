@@ -222,41 +222,18 @@ class Student(models.Model):
     completed_courses = models.JSONField(null=True, blank=True)  # Array of completed courses with grades
     financial_aid = models.JSONField(null=True, blank=True)  # Array of financial aid records
     billing_info = models.JSONField(null=True, blank=True)  # Object: payment methods, billing history
-    housing_application = models.JSONField(null=True, blank=True)  # Object: housing preferences, status
-    meal_plan = models.JSONField(null=True, blank=True)  # Object: current plan, balance
-    academic_records = models.JSONField(null=True, blank=True)  # Array: transcripts, degrees
-    library_books = models.JSONField(null=True, blank=True)  # Array: borrowed library books
     
-    def add_enrollment(self, enrollment):
-        """Add an enrollment to the student's enrollments"""
-        if self.enrollments is None:
-            self.enrollments = []
-        if isinstance(self.enrollments, list):
-            self.enrollments.append(enrollment)
-        self.save()
-    
-    def add_course(self, course):
-        """Add a course to the student's courses"""
-        if self.courses is None:
-            if self.graduation_date:
-                graduation_date_str = str(self.graduation_date)
-        except:
-            pass
-        
-        cumulative_gpa_value = None
-        try:
-            if self.cumulative_gpa is not None:
-                cumulative_gpa_value = float(str(self.cumulative_gpa))
-        except:
-            pass
-        
+    def to_json(self):
+        """Convert student to JSON format"""
         return {
             'student_id': self.student_id,
             'user_id': str(getattr(self.user, 'pk', '')),
             'degree_program': self.degree_program,
             'advisor_id': self.advisor_id,
-            'graduation_date': graduation_date_str,
-            'cumulative_gpa': cumulative_gpa_value,
+            'graduation_date': str(self.graduation_date) if self.graduation_date else None,
+            'cumulative_gpa': float(self.cumulative_gpa) if self.cumulative_gpa else None,
+            'library_card_number': self.library_card_number,
+            'library_fines': float(self.library_fines),
         }
     
     def __str__(self):

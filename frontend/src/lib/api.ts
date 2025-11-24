@@ -1,21 +1,21 @@
 import { getAuthToken } from '@/lib/auth';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/v1`;
 
 // Create an authenticated fetch wrapper
 export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   console.log(`Making authenticated request to ${url}`, { token: token ? 'present' : 'missing' });
-  
+
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  
+
   // Add authorization header if token exists
   if (token) {
     defaultHeaders['Authorization'] = `Bearer ${token}`;
   }
-  
+
   const config: RequestInit = {
     ...options,
     headers: {
@@ -23,7 +23,7 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
       ...options.headers,
     },
   };
-  
+
   try {
     const fullUrl = `${API_BASE_URL}${url}`;
     console.log(`Fetching ${fullUrl} with config:`, config);
