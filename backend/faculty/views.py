@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from users.models import User
+from users.models import User, Student
 from courses.models import Course
 from assignments.models import Assignment
 from research.models import ResearchProject
@@ -277,14 +277,19 @@ def gradebook(request, course_id):
             return JsonResponse({'success': False, 'message': 'Course not found or access denied'}, status=404)
         
         # Get enrollments for this course
-        enrollments = Enrollment.objects.filter(course_id=course_id).select_related('student__user')  # type: ignore
+        enrollments = Enrollment.objects.filter(course_id=course_id)  # type: ignore
         
         # Get students data with real information
         students = []
         for enrollment in enrollments:
             # Get actual student data from the User model
-            student = enrollment.student
-            user = student.user
+            # Since Enrollment doesn't have a FK to Student, we need to get the student by student_id
+            try:
+                student = Student.objects.get(student_id=enrollment.student_id)  # type: ignore
+                user = student.user
+            except Student.DoesNotExist:  # type: ignore
+                # If student doesn't exist, skip this enrollment
+                continue
             
             # Get grades for this student in this course
             grades = Grade.objects.filter(student_id=student.student_id, assignment__course_id=course_id)  # type: ignore
@@ -316,6 +321,8 @@ def gradebook(request, course_id):
         return JsonResponse({'students': students})
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'message': 'Failed to fetch gradebook'}, status=500)
 
 
