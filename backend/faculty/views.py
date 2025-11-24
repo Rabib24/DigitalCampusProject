@@ -292,7 +292,7 @@ def gradebook(request, course_id):
                 continue
             
             # Get grades for this student in this course
-            grades = Grade.objects.filter(student_id=student.student_id, assignment__course_id=course_id)  # type: ignore
+            grades = Grade.objects.filter(student_id=student.student_id, course_id=course_id)  # type: ignore
             
             # Calculate overall grade
             overall_grade = 0
