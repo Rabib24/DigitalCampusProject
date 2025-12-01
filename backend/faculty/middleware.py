@@ -1,6 +1,5 @@
 import json
 import jwt
-import redis
 from django.conf import settings
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
@@ -14,29 +13,7 @@ class FacultyRoleMiddleware(MiddlewareMixin):
     
     def __init__(self, get_response):
         self.get_response = get_response
-        # Initialize Redis connection
-        try:
-            # Use environment variables from .env file
-            redis_host = getattr(settings, 'REDIS_NODE_1_HOST', 'localhost')
-            redis_port = getattr(settings, 'REDIS_NODE_1_PORT', 7001)
-            
-            # Set a shorter timeout for Redis connection
-            self.redis_client = redis.Redis(
-                host=redis_host,
-                port=redis_port,
-                db=0,
-                socket_connect_timeout=2,  # 2 second timeout for connection
-                socket_timeout=2,  # 2 second timeout for operations
-                retry_on_timeout=False  # Don't retry on timeout
-            )
-            
-            # Test the connection with a short timeout
-            self.redis_client.ping()
-        except Exception as e:
-            # If Redis is not available, set client to None
-            self.redis_client = None
-            print(f"Warning: Redis connection failed in middleware: {e}")
-            print("Redis-dependent features will be disabled.")
+        # No Redis connection needed
             
     def process_request(self, request):
         print(f"Middleware processing request: {request.path}")
@@ -70,7 +47,6 @@ class FacultyRoleMiddleware(MiddlewareMixin):
                 payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
                 print(f"Decoded payload: {payload}")
                 
-                # Always skip Redis checks for development
                 # Check expiration
                 exp = payload.get('exp')
                 print(f"Token exp: {exp}")
@@ -106,7 +82,6 @@ class FacultyRoleMiddleware(MiddlewareMixin):
                         faculty_profile = Faculty.objects.get(user=user)  # type: ignore
                         print(f"Faculty profile found: {faculty_profile.employee_id}")
                         
-                        # Always skip Redis session management for development
                         # Attach user and faculty info to request
                         request.user = user
                         request.faculty = faculty_profile

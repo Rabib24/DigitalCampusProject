@@ -8,13 +8,6 @@ psycopg2-binary>=2.9.7
 # Environment Management
 python-dotenv>=1.0.1
 
-# Redis & Caching
-django-redis>=5.4.0
-redis>=5.0.0
-
-# Task Queue
-celery>=5.3.6
-
 # Cloud Storage
 cloudinary>=1.39.1
 

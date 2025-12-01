@@ -110,7 +110,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'DigitalCampus'),
         'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'DigitalIub'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'DigitalIUB'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
@@ -160,10 +160,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
 AUTH_USER_MODEL = 'users.User'
-
-# Redis configuration
-REDIS_NODE_1_HOST = os.getenv('REDIS_NODE_1_HOST', 'localhost')
-REDIS_NODE_1_PORT = int(os.getenv('REDIS_NODE_1_PORT', 7001))
 
 # CORS configuration for local frontend on http://localhost:3000
 CORS_ALLOWED_ORIGINS = [

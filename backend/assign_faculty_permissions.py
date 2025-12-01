@@ -14,7 +14,7 @@ def assign_test_faculty_permissions():
     """Assign necessary permissions to test faculty user"""
     try:
         # Get the test faculty user
-        user = User.objects.get(username='testfaculty')
+        user = User.objects.get(username='2221002')
         print(f"Found test faculty user: {user.username}")
         
         # Get faculty profile

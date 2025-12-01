@@ -37,25 +37,6 @@ services:
     depends_on:
       - db
 
-  # Redis Cluster for caching and session storage
-  redis-node-1:
-    image: redis:7-alpine
-    command: redis-server --port 7001
-    ports:
-      - "7001:7001"
-
-  redis-node-2:
-    image: redis:7-alpine
-    command: redis-server --port 7002
-    ports:
-      - "7002:7002"
-
-  redis-node-3:
-    image: redis:7-alpine
-    command: redis-server --port 7003
-    ports:
-      - "7003:7003"
-
   # Backend Django Application
   backend:
     build:
@@ -64,19 +45,12 @@ services:
     depends_on:
       - db
       - pgbouncer
-      - redis-node-1
-      - redis-node-2
-      - redis-node-3
     environment:
       - DB_HOST=pgbouncer
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_PORT=6432
-
-      - REDIS_URL=redis://redis-node-1:7001
-      - CELERY_BROKER_URL=redis://redis-node-1:7001
-      - CELERY_RESULT_BACKEND=redis://redis-node-1:7001
     ports:
       - "8000:8000"
     volumes:

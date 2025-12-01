@@ -1,11 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from users.models import User, Student
-from courses.models import Course
-from assignments.models import Assignment
+from courses.models import Course, Enrollment
+from assignments.models import Assignment, Grade
 from research.models import ResearchProject
-from assignments.models import Grade
-from courses.models import Enrollment
 import json
 
 # Import our new decorators
@@ -27,7 +25,7 @@ def check_faculty_permission(request, permission_codename, attributes=None):
 
 
 @csrf_exempt
-@faculty_permission_required('course_view')
+@faculty_required
 def dashboard_overview(request):
     """Get faculty dashboard overview"""
     try:
@@ -35,10 +33,10 @@ def dashboard_overview(request):
         courses = Course.objects.filter(instructor_id=request.faculty.employee_id)  # type: ignore
         active_classes = courses.count()
         
-        # Calculate total students across all courses
+        # Calculate total students across all courses using Enrollment model
         total_students = 0
         for course in courses:
-            total_students += course.get_student_count()
+            total_students += Enrollment.objects.filter(course_id=course.id).count()
         
         # Get pending assignments (assignments due within next 7 days)
         from django.utils import timezone
@@ -79,7 +77,12 @@ def dashboard_overview(request):
             for course in courses:
                 # Calculate a realistic attendance rate based on course ID
                 # In a real system, this would come from actual attendance records
-                base_attendance = 75 + (course.id % 20)  # Vary between 75-95%
+                # Extract numeric part from course ID (e.g., COURSE001 -> 1)
+                try:
+                    course_num = int(''.join(filter(str.isdigit, course.id)))
+                    base_attendance = 75 + (course_num % 20)  # Vary between 75-95%
+                except ValueError:
+                    base_attendance = 85  # Default value if we can't extract a number
                 total_attendance += min(base_attendance, 100)  # Cap at 100%
             attendance_rate = total_attendance / course_count
         
@@ -91,11 +94,13 @@ def dashboard_overview(request):
             'attendanceRate': round(attendance_rate, 2),
             'pendingAssignments': pending_assignments[:5]  # Limit to 5 assignments
         }
+        
+        return JsonResponse(data)
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'message': 'Failed to fetch dashboard data'}, status=500)
-    
-    return JsonResponse(data)
 
 
 @csrf_exempt
@@ -410,7 +415,12 @@ def analytics(request):
                 # In a real system, we would have an Attendance model to track this
                 # For now, we'll calculate a more realistic attendance rate based on course data
                 # Let's assume a realistic attendance rate between 75-95% based on course ID
-                base_attendance = 75 + (course.id % 20)  # Vary between 75-95%
+                # Extract numeric part from course ID (e.g., COURSE001 -> 1)
+                try:
+                    course_num = int(''.join(filter(str.isdigit, course.id)))
+                    base_attendance = 75 + (course_num % 20)  # Vary between 75-95%
+                except ValueError:
+                    base_attendance = 85  # Default value if we can't extract a number
                 attendance_rate = min(base_attendance, 100)  # Cap at 100%
                 
                 attendance_data.append({
@@ -497,7 +507,12 @@ def analytics(request):
                     ]
                 else:
                     # Default performance if no grades
-                    base_score = 80 + (course.id % 15)  # Vary between 80-95
+                    # Extract numeric part from course ID (e.g., COURSE001 -> 1)
+                    try:
+                        course_num = int(''.join(filter(str.isdigit, course.id)))
+                        base_score = 80 + (course_num % 15)  # Vary between 80-95
+                    except ValueError:
+                        base_score = 85  # Default value if we can't extract a number
                     course_performance[course_code] = [
                         base_score,
                         base_score + 2,
@@ -506,7 +521,12 @@ def analytics(request):
                     ]
             else:
                 # Default performance if no grades
-                base_score = 80 + (course.id % 15)  # Vary between 80-95
+                # Extract numeric part from course ID (e.g., COURSE001 -> 1)
+                try:
+                    course_num = int(''.join(filter(str.isdigit, course.id)))
+                    base_score = 80 + (course_num % 15)  # Vary between 80-95
+                except ValueError:
+                    base_score = 85  # Default value if we can't extract a number
                 course_performance[course_code] = [
                     base_score,
                     base_score + 2,
@@ -585,6 +605,8 @@ def analytics(request):
         return JsonResponse(data)
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'message': 'Failed to fetch analytics'}, status=500)
 
 
