@@ -17,6 +17,7 @@ import {
   CreditCard,
   Users,
   Calculator,
+  ShoppingCart,
 } from "lucide-react";
 import { StudentTopNav } from "@/components/student/TopNav";
 import { StudentSidebar } from "@/components/student/Sidebar";
@@ -35,6 +36,7 @@ import { AdvisorCommunicationView } from "@/components/student/AdvisorCommunicat
 import { FinanceServicesView } from "@/components/student/FinanceServicesView";
 import { CampusLifeView } from "@/components/student/CampusLifeView";
 import { CGPACalculatorView } from "@/components/student/CGPACalculatorView";
+import { CourseRegistrationView } from "@/components/student/CourseRegistrationView";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 type StudentView =
@@ -52,12 +54,14 @@ type StudentView =
   | "advisor"
   | "finance"
   | "campus-life"
-  | "cgpa-calculator";
+  | "cgpa-calculator"
+  | "course-registration";
 type NavItem = { id: StudentView; label: string; icon: ComponentType<{ size?: number }> };
 
 const studentNavItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "courses", label: "My Courses", icon: BookOpen },
+  { id: "course-registration", label: "Register for Courses", icon: ShoppingCart },
   { id: "assignments", label: "Assignments", icon: ClipboardList },
   { id: "grades", label: "Grades", icon: PieChart },
   { id: "library", label: "Library", icon: Library },
@@ -121,6 +125,8 @@ export default function StudentDashboardPage() {
         return <CGPACalculatorView />;
       case "settings":
         return <SettingsView />;
+      case "course-registration":
+        return <CourseRegistrationView />;
       default:
         return <DashboardView />;
     }

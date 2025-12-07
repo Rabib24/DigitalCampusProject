@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FacultyProvider } from "@/hooks/faculty/FacultyContext";
 import { FacultyTopNav } from "@/components/faculty/FacultyTopNav";
 import { FacultySidebar } from "@/components/faculty/FacultySidebar";
-import { BookOpen, Users, FileText, BarChart3, Calendar, MessageCircle, Video, Search, Award, Settings } from "lucide-react";
+import { BookOpen, Users, FileText, BarChart3, Calendar, MessageCircle, Video, Search, Award, Settings, CheckCircle } from "lucide-react";
 import { FacultyDashboardView } from "@/components/faculty/views/FacultyDashboardView";
 import { FacultyCoursesView } from "@/components/faculty/views/FacultyCoursesView";
 import { FacultyAssignmentsView } from "@/components/faculty/views/FacultyAssignmentsView";
@@ -14,6 +14,7 @@ import { FacultyResearchView } from "@/components/faculty/views/FacultyResearchV
 import { FacultyRecordingsView } from "@/components/faculty/views/FacultyRecordingsView";
 import { FacultyAnalyticsView } from "@/components/faculty/views/FacultyAnalyticsView";
 import { FacultySettingsView } from "@/components/faculty/views/FacultySettingsView";
+import { FacultyApprovalRequestsView } from "@/components/faculty/views/FacultyApprovalRequestsView";
 import { FacultyProtectedRoute } from "@/components/faculty/FacultyProtectedRoute";
 
 export default function FacultyDashboardPage() {
@@ -25,6 +26,7 @@ export default function FacultyDashboardPage() {
     { id: "assignments", label: "Assignments", icon: FileText },
     { id: "gradebook", label: "Gradebook", icon: BarChart3 },
     { id: "advising", label: "Advising", icon: Users },
+    { id: "approval-requests", label: "Approval Requests", icon: CheckCircle },
     { id: "research", label: "Research", icon: Award },
     { id: "recordings", label: "Recordings", icon: Video },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
@@ -43,6 +45,8 @@ export default function FacultyDashboardPage() {
         return <FacultyGradebookView />;
       case "advising":
         return <FacultyAdvisingView />;
+      case "approval-requests":
+        return <FacultyApprovalRequestsView />;
       case "research":
         return <FacultyResearchView />;
       case "recordings":

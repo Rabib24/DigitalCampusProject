@@ -39,9 +39,16 @@ urlpatterns = [
     path('courses/<str:course_id>/enrollments/<str:student_id>/remove/', course_views.remove_student_from_course, name='faculty_remove_student_from_course'),
     path('courses/<str:course_id>/bulk-enroll/', course_views.bulk_enroll_students, name='faculty_bulk_enroll_students'),
     
+    # Course enrollment management endpoints
+    path('courses/<str:course_id>/enrollment/', course_views.manage_course_enrollment, name='faculty_manage_course_enrollment'),
+    path('courses/<str:course_id>/enrollments/', course_views.get_course_enrollments, name='faculty_get_course_enrollments'),
+    
     # Course waitlist management endpoints
     path('courses/<str:course_id>/waitlist/', course_views.get_course_waitlist, name='faculty_get_course_waitlist'),
     path('courses/<str:course_id>/waitlist/manage/', course_views.manage_waitlist, name='faculty_manage_waitlist'),
+    
+    # Course roster endpoint
+    path('courses/<str:course_id>/roster/', course_views.get_course_roster, name='faculty_get_course_roster'),
     
     # Course assignments endpoints
     path('courses/<str:course_id>/assignments/', course_views.get_course_assignments, name='faculty_get_course_assignments'),

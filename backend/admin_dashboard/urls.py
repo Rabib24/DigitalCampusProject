@@ -20,5 +20,12 @@ urlpatterns = [
     path('enrollment/faculty-assignment/', enrollment_views.assign_faculty_to_course, name='admin_assign_faculty'),
     path('enrollment/reports/', enrollment_views.get_enrollment_reports, name='admin_enrollment_reports'),
     path('enrollment/overrides/', enrollment_views.get_enrollment_overrides, name='admin_enrollment_overrides'),
+    path('enrollment/overrides/create/', enrollment_views.create_enrollment_override_request, name='admin_create_enrollment_override'),
     path('enrollment/overrides/<str:request_id>/', enrollment_views.process_enrollment_override, name='admin_process_enrollment_override'),
+    
+    # Course faculty management endpoints
+    path('courses/<str:course_id>/faculty/', enrollment_views.get_course_faculty, name='admin_get_course_faculty'),
+    path('courses/<str:course_id>/faculty/assign/', enrollment_views.assign_faculty_to_course, name='admin_assign_faculty_to_course'),
+    path('courses/<str:course_id>/faculty/update/', enrollment_views.update_course_faculty, name='admin_update_course_faculty'),
+    path('courses/<str:course_id>/faculty/remove/', enrollment_views.remove_faculty_from_course, name='admin_remove_faculty_from_course'),
 ]

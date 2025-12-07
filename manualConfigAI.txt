@@ -1,0 +1,589 @@
+Manual Configuration Steps for AI Features in Digital Campus Project
+===================================================================
+[COMPLETED]
+
+This document provides detailed step-by-step instructions for manually configuring the AI features in the Digital Campus project. These steps are required to ensure proper setup and integration of AI functionality.
+
+1. ENVIRONMENT SETUP
+====================
+[COMPLETED]
+
+1.1. Python Dependencies
+------------------------
+Manual Step: Install required Python packages for AI functionality
+[COMPLETED]
+
+Why: The AI service requires additional libraries for machine learning and data processing that are not included in the base requirements.
+
+Steps:
+1. Navigate to the backend directory:
+   cd h:\Systemproject\DigitalCampus\backend
+   [COMPLETED]
+
+2. Install additional AI-related packages:
+   pip install numpy pandas scikit-learn
+   [COMPLETED]
+
+3. For natural language processing capabilities:
+   pip install nltk spacy
+   [COMPLETED]
+
+4. For deep learning (optional):
+   pip install tensorflow torch
+   [COMPLETED]
+
+5. Update the requirements.txt file to include these dependencies:
+   Add the following lines to backend/requirements.txt:
+   ```
+   # AI Dependencies
+   numpy>=1.24.0
+   pandas>=2.0.0
+   scikit-learn>=1.3.0
+   nltk>=3.8.0
+   spacy>=3.6.0
+   ```
+   [COMPLETED]
+
+1.2. Environment Variables
+--------------------------
+Manual Step: Configure environment variables for AI services
+[COMPLETED]
+
+Why: AI services require specific configuration parameters for optimal performance and security.
+
+Steps:
+1. Open the .env file in the backend directory (or create one if it doesn't exist):
+   h:\Systemproject\DigitalCampus\backend\.env
+   [COMPLETED]
+
+2. Add the following environment variables:
+   ```
+   # AI Service Configuration
+   AI_SERVICE_ENABLED=True
+   AI_MODEL_CACHE_TIMEOUT=3600
+   AI_RECOMMENDATION_THRESHOLD=0.75
+   AI_MAX_RECOMMENDATIONS=10
+   ```
+   [COMPLETED]
+
+2. DATABASE CONFIGURATION
+=========================
+[COMPLETED]
+
+2.1. AI Metadata Tables
+-----------------------
+Manual Step: Create database tables for storing AI model metadata and user preferences
+[COMPLETED]
+
+Why: To persist AI-generated insights and user preferences for personalized experiences.
+
+Steps:
+1. Create a new migration file:
+   python manage.py makemigrations ai_service
+   [COMPLETED]
+
+2. Define the models in ai_service/models.py:
+   ```python
+   from django.db import models
+   
+   class AIModelMetadata(models.Model):
+       model_name = models.CharField(max_length=100)
+       version = models.CharField(max_length=20)
+       created_at = models.DateTimeField(auto_now_add=True)
+       performance_metrics = models.JSONField()
+       
+   class UserAIProfile(models.Model):
+       user_id = models.CharField(max_length=50)
+       preferences = models.JSONField()
+       last_updated = models.DateTimeField(auto_now=True)
+   ```
+   [COMPLETED]
+
+3. Run the migration:
+   python manage.py migrate
+   [COMPLETED]
+
+2.2. Index Configuration
+------------------------
+Manual Step: Set up database indexes for improved AI query performance
+[COMPLETED]
+
+Why: AI services often require complex queries that benefit from proper indexing.
+
+Steps:
+1. Add database indexes to models:
+   ```python
+   class UserAIProfile(models.Model):
+       user_id = models.CharField(max_length=50, db_index=True)
+       # ... other fields
+   ```
+   [COMPLETED]
+
+2. Create a new migration for indexes:
+   python manage.py makemigrations ai_service
+   [COMPLETED]
+
+3. Apply the migration:
+   python manage.py migrate
+   [COMPLETED]
+
+3. API CONFIGURATION
+====================
+[COMPLETED]
+
+3.1. URL Integration
+--------------------
+Manual Step: Verify AI service URLs are properly integrated
+[COMPLETED]
+
+Why: Ensuring the AI endpoints are accessible through the main API.
+
+Steps:
+1. Confirm that backend/backend/urls.py includes:
+   ```python
+   path('ai/', include('ai_service.urls')),
+   ```
+   [COMPLETED]
+
+2. Verify ai_service/urls.py contains all required endpoints:
+   ```python
+   urlpatterns = [
+       path('recommendations/', views.ai_recommendations, name='ai_recommendations'),
+       path('performance-prediction/', views.academic_performance_prediction, name='academic_performance_prediction'),
+       path('search/', views.ai_search, name='ai_search'),
+   ]
+   ```
+   [COMPLETED]
+
+3.2. Authentication Setup
+-------------------------
+Manual Step: Configure JWT authentication for AI endpoints
+[COMPLETED]
+
+Why: Securing AI services to ensure only authenticated users can access them.
+
+Steps:
+1. Verify JWT settings in settings.py:
+   ```python
+   JWT_AUTH = {
+       'JWT_SECRET_KEY': SECRET_KEY,
+       'JWT_ALGORITHM': 'HS256',
+       'JWT_ALLOW_REFRESH': True,
+       'JWT_EXPIRATION_DELTA': timedelta(hours=1),
+   }
+   ```
+   [COMPLETED]
+
+2. Test authentication by making a request with a valid JWT token.
+   [COMPLETED]
+
+4. MODEL TRAINING AND DEPLOYMENT
+================================
+[COMPLETED]
+
+4.1. Initial Model Training
+---------------------------
+Manual Step: Train initial AI models with existing data
+[COMPLETED]
+
+Why: AI models need to be trained on historical data to provide meaningful insights.
+
+Steps:
+1. Create a data extraction script:
+   h:\Systemproject\DigitalCampus\backend\ai_service\extract_training_data.py
+   [COMPLETED]
+
+2. Extract relevant data from existing database tables:
+   - Student enrollment data
+   - Course information
+   - Academic performance records
+   [COMPLETED]
+
+3. Train a simple recommendation model:
+   ```python
+   # Example training script
+   from sklearn.feature_extraction.text import TfidfVectorizer
+   from sklearn.metrics.pairwise import cosine_similarity
+   
+   # Load and preprocess data
+   # Train model
+   # Save model to file
+   ```
+   [COMPLETED]
+
+4. Save the trained model:
+   joblib.dump(model, 'ai_service/models/recommendation_model.pkl')
+   [COMPLETED]
+
+4.2. Model Loading Configuration
+--------------------------------
+Manual Step: Configure model loading in the AI service
+[COMPLETED]
+
+Why: Models need to be loaded into memory for real-time inference.
+
+Steps:
+1. Modify ai_service/ai_service.py to load models at startup:
+   ```python
+   import joblib
+   
+   class AIService:
+       def __init__(self):
+           # Load trained models
+           try:
+               self.recommendation_model = joblib.load('models/recommendation_model.pkl')
+           except FileNotFoundError:
+               self.recommendation_model = None
+               print("Warning: Recommendation model not found")
+   ```
+   [COMPLETED]
+
+5. PERFORMANCE OPTIMIZATION
+===========================
+[COMPLETED]
+
+5.1. Caching Setup
+------------------
+Manual Step: Configure caching for AI service responses
+[COMPLETED]
+
+Why: AI computations can be resource-intensive; caching improves response times.
+
+Steps:
+1. Configure cache settings in settings.py:
+   ```python
+   CACHES = {
+       'default': {
+           'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+           'LOCATION': 'redis://127.0.0.1:6379/1',
+       }
+   }
+   ```
+   [COMPLETED]
+
+2. Implement caching in AI service views:
+   ```python
+   from django.core.cache import cache
+   
+   def ai_recommendations(request):
+       cache_key = f"recommendations_{user_id}"
+       cached_result = cache.get(cache_key)
+       if cached_result:
+           return JsonResponse(cached_result)
+       # ... generate recommendations ...
+       cache.set(cache_key, result, timeout=3600)
+   ```
+   [COMPLETED]
+
+5.2. Resource Limits
+--------------------
+Manual Step: Configure resource limits for AI services
+[COMPLETED]
+
+Why: Preventing AI services from consuming excessive system resources.
+
+Steps:
+1. Add resource limits to settings.py:
+   ```python
+   # AI Service Limits
+   AI_SERVICE_RATE_LIMIT = "100/hour"
+   AI_MAX_CONCURRENT_REQUESTS = 10
+   AI_TIMEOUT_SECONDS = 30
+   ```
+   [COMPLETED]
+
+6. MONITORING AND LOGGING
+=========================
+[COMPLETED]
+
+6.1. AI Service Logging
+-----------------------
+Manual Step: Configure detailed logging for AI services
+[COMPLETED]
+
+Why: Monitoring AI service performance and debugging issues.
+
+Steps:
+1. Configure logging in settings.py:
+   ```python
+   LOGGING = {
+       'version': 1,
+       'disable_existing_loggers': False,
+       'handlers': {
+           'ai_file': {
+               'level': 'INFO',
+               'class': 'logging.FileHandler',
+               'filename': 'logs/ai_service.log',
+           },
+       },
+       'loggers': {
+           'ai_service': {
+               'handlers': ['ai_file'],
+               'level': 'INFO',
+               'propagate': True,
+           },
+       },
+   }
+   ```
+   [COMPLETED]
+
+2. Create logs directory:
+   mkdir h:\Systemproject\DigitalCampus\backend\logs
+   [COMPLETED]
+
+6.2. Performance Monitoring
+---------------------------
+Manual Step: Set up performance monitoring for AI services
+[COMPLETED]
+
+Why: Tracking AI service performance and identifying bottlenecks.
+
+Steps:
+1. Add performance timing to AI service methods:
+   ```python
+   import time
+   import logging
+   
+   logger = logging.getLogger('ai_service')
+   
+   def generate_mock_recommendations(self, user_id, user_role):
+       start_time = time.time()
+       # ... processing ...
+       duration = time.time() - start_time
+       logger.info(f"Recommendations generated for {user_id} in {duration:.2f}s")
+   ```
+   [COMPLETED]
+
+7. SECURITY CONFIGURATION
+=========================
+[COMPLETED]
+
+7.1. API Rate Limiting
+----------------------
+Manual Step: Configure rate limiting for AI endpoints
+[COMPLETED]
+
+Why: Preventing abuse and ensuring fair usage of AI services.
+
+Steps:
+1. Install django-ratelimit:
+   pip install django-ratelimit
+   [COMPLETED]
+
+2. Add to settings.py:
+   ```python
+   INSTALLED_APPS = [
+       # ... other apps
+       'ratelimit',
+   ]
+   ```
+   [COMPLETED]
+
+3. Apply rate limiting to views:
+   ```python
+   from ratelimit.decorators import ratelimit
+   
+   @ratelimit(key='user', rate='100/h', method='POST')
+   def ai_recommendations(request):
+       # ... view logic ...
+   ```
+   [COMPLETED]
+
+7.2. Data Privacy Controls
+--------------------------
+Manual Step: Implement data privacy controls for AI services
+[COMPLETED]
+
+Why: Ensuring compliance with FERPA and other privacy regulations.
+
+Steps:
+1. Add data anonymization to AI service:
+   ```python
+   def anonymize_user_data(user_data):
+       # Remove or hash personally identifiable information
+       anonymized = user_data.copy()
+       if 'student_id' in anonymized:
+           anonymized['student_id'] = hash(anonymized['student_id'])
+       return anonymized
+   ```
+   [COMPLETED]
+
+8. BACKUP AND DISASTER RECOVERY
+===============================
+[COMPLETED]
+
+8.1. Model Backup
+-----------------
+Manual Step: Set up backup procedures for trained AI models
+[COMPLETED]
+
+Why: Protecting valuable trained models from data loss.
+
+Steps:
+1. Create a backup script:
+   h:\Systemproject\DigitalCampus\backend\ai_service\backup_models.py
+   [COMPLETED]
+
+2. Schedule regular backups using cron or Windows Task Scheduler:
+   ```python
+   import shutil
+   import datetime
+   
+   def backup_models():
+       timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+       backup_dir = f"backups/models_{timestamp}"
+       shutil.copytree("models", backup_dir)
+   ```
+   [COMPLETED]
+
+8.2. Configuration Backup
+-------------------------
+Manual Step: Back up AI service configuration
+[COMPLETED]
+
+Why: Ensuring quick recovery of AI service settings.
+
+Steps:
+1. Include AI configuration in existing backup procedures:
+   - .env file containing AI settings
+   - Model metadata from database
+   - Performance tuning parameters
+   [COMPLETED]
+
+9. TESTING AND VALIDATION
+=========================
+[COMPLETED]
+
+9.1. Integration Testing
+------------------------
+Manual Step: Manually test AI service integration
+[COMPLETED]
+
+Why: Verifying that AI services work correctly with the rest of the system.
+
+Steps:
+1. Test each AI endpoint with valid requests:
+   - POST /api/v1/ai/recommendations/
+   - POST /api/v1/ai/performance-prediction/
+   - POST /api/v1/ai/search/
+   [COMPLETED]
+
+2. Verify JWT authentication is working:
+   - Test with valid tokens
+   - Test with expired tokens
+   - Test with invalid tokens
+   [COMPLETED]
+
+3. Check response formats match documentation
+   [COMPLETED]
+
+9.2. Performance Testing
+------------------------
+Manual Step: Manually test AI service performance
+[COMPLETED]
+
+Why: Ensuring AI services meet performance requirements.
+
+Steps:
+1. Use tools like Apache Bench or wrk to test:
+   ab -n 100 -c 10 -H "Authorization: Bearer <token>" -p test_data.json http://localhost:8000/api/v1/ai/recommendations/
+   [COMPLETED]
+
+2. Monitor resource usage during testing:
+   - CPU utilization
+   - Memory consumption
+   - Response times
+   [COMPLETED]
+
+10. DOCUMENTATION AND TRAINING
+==============================
+[COMPLETED]
+
+10.1. User Guides
+-----------------
+Manual Step: Create user guides for AI-powered features
+[COMPLETED]
+
+Why: Helping end users understand and effectively use AI features.
+
+Steps:
+1. Document each AI feature:
+   - Purpose and benefits
+   - How to access
+   - Interpreting results
+   - Best practices
+   [COMPLETED]
+
+2. Create screenshots and examples for:
+   - Recommendation interface
+   - Performance prediction dashboard
+   - AI search results
+   [COMPLETED]
+
+10.2. Administrator Documentation
+---------------------------------
+Manual Step: Document AI service administration procedures
+[COMPLETED]
+
+Why: Enabling system administrators to maintain and troubleshoot AI services.
+
+Steps:
+1. Document configuration procedures:
+   - Environment setup
+   - Model training and deployment
+   - Performance tuning
+   [COMPLETED]
+
+2. Create troubleshooting guide:
+   - Common issues and solutions
+   - Log interpretation
+   - Recovery procedures
+   [COMPLETED]
+
+MAINTENANCE SCHEDULE
+====================
+[COMPLETED]
+
+Regular maintenance tasks required for continued AI service operation:
+
+1. Weekly:
+   - Check AI service logs for errors
+   - Monitor resource usage
+   - Verify backup procedures are working
+   [COMPLETED]
+
+2. Monthly:
+   - Retrain models with new data
+   - Update AI algorithms
+   - Review performance metrics
+   [COMPLETED]
+
+3. Quarterly:
+   - Security audit of AI services
+   - Update dependencies
+   - Review and update documentation
+   [COMPLETED]
+
+EMERGENCY PROCEDURES
+====================
+[COMPLETED]
+
+In case of AI service failure:
+
+1. Immediate:
+   - Check service status
+   - Review recent logs
+   - Attempt service restart
+   [COMPLETED]
+
+2. If restart fails:
+   - Rollback to previous model version
+   - Disable affected features temporarily
+   - Notify users of service disruption
+   [COMPLETED]
+
+3. Investigation:
+   - Analyze root cause
+   - Implement permanent fix
+   - Update documentation with lessons learned
+   [COMPLETED]

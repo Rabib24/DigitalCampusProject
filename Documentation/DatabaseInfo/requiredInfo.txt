@@ -1,0 +1,78 @@
+Create a Python script that analyzes the current database information and generates a comprehensive report in a file named 'DatabaseDetails.txt'. The script should provide complete details about the current database state, including:
+
+1. For each faculty member:
+   - List of courses assigned to them
+   - Number of courses they are teaching
+   - Number of students enrolled in their courses
+   - List of research projects they are leading
+   - List of publications they have authored
+   - Their advising responsibilities (list of advisees)
+   - Their permissions and access rights
+
+2. For each course:
+   - Number of students enrolled
+   - List of assignments belonging to the course
+   - Assignment details (title, type, due date)
+   - Faculty member teaching the course
+   - List of sections (if applicable) with enrollment numbers
+   - Course syllabus and materials
+
+3. For each assignment:
+   - Which course it belongs to
+   - Which students have submitted it
+   - Submission status for each student
+   - Grading status and grades (if assigned)
+   - Assignment type and weight in course grade
+
+4. For each student:
+   - Number of courses they are enrolled in for the current semester
+   - List of courses they are taking
+   - Their assignment submission status for each course
+   - Current grades in each course
+   - Academic advisor information
+   - Research projects they are involved in (if any)
+   - Library borrowing history and current loans
+   - Financial information (outstanding balances, scholarship status)
+   - Appointment history with faculty/staff
+
+5. For Department Admin users:
+   - Department information and statistics
+   - Faculty members in the department with their course loads
+   - Course offerings and enrollment statistics
+   - Budget information and expenditures
+   - Staff requests and their status
+   - Departmental announcements and communications
+
+6. For Finance Admin users:
+   - Financial records and transactions
+   - Invoice and payment information
+   - Scholarship and financial aid data
+   - Budget allocations and expenditures
+   - Financial reports and analytics
+   - Student financial statuses and outstanding balances
+
+7. For Library Staff users:
+   - Book inventory and catalog information
+   - Patron information and borrowing history
+   - Overdue items and fines
+   - Digital resources and their usage statistics
+   - Library analytics and reports
+   - Reservation and request information
+
+8. For IT Admin users:
+   - System user accounts and their roles
+   - Security logs and incidents
+   - System performance metrics
+   - Backup and recovery information
+   - Integration status with external systems
+   - User provisioning and deprovisioning records
+
+9. For Research Admin users:
+   - Research project proposals and their status
+   - Grant applications and awards
+   - Publication records and analytics
+   - Ethics approval requests and status
+   - Research collaboration information
+   - Researcher profiles and credentials
+
+Ensure the script verifies that all demo data is properly connected and functioning correctly. The output file should present this information in a well-organized, readable format that clearly shows the relationships between faculty, courses, students, and assignments. Validate that the generated demo data maintains proper relational integrity across all entities.

@@ -1,12 +1,8 @@
-#!/usr/bin/env python
 import os
-import sys
 import django
-import json
-import requests
-
-# Add the backend directory to the Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import sys
+from django.test import RequestFactory
+from django.http import JsonResponse
 
 # Set up Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
@@ -14,76 +10,62 @@ django.setup()
 
 from users.models import User
 from faculty.models import Faculty
-import jwt
-from django.conf import settings
-from datetime import datetime, timedelta
-from django.utils import timezone
+from faculty.views import dashboard_overview
+from faculty.middleware import FacultyRoleMiddleware
 
-def generate_test_token():
-    """Generate a test JWT token for faculty user 2221002"""
+def test_faculty_dashboard():
+    """Test faculty dashboard data fetching"""
     try:
         # Get the faculty user
         user = User.objects.get(username='2221002')
-        print(f"Found user: {user.username} (ID: {user.id}, Role: {user.role})")
+        print(f"Found faculty user: {user.username}")
         
-        # Generate JWT token
-        now = timezone.now()
-        exp = now + timedelta(hours=24)  # Token expires in 24 hours
-        payload = {
-            'user_id': user.id,
-            'username': user.username,
-            'role': user.role,
-            'exp': exp.timestamp(),  # Convert to timestamp
-            'iat': now.timestamp()   # Convert to timestamp
-        }
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-        print(f"Generated token: {token}")
-        return token
-    except User.DoesNotExist:
-        print("User with username '2221002' does not exist")
-        return None
-    except Exception as e:
-        print(f"Error generating token: {e}")
-        return None
-
-def test_faculty_dashboard(token):
-    """Test fetching faculty dashboard data"""
-    try:
-        # Make a request to the faculty dashboard endpoint
-        headers = {
-            'Authorization': f'Bearer {token}',
-            'Content-Type': 'application/json'
-        }
+        # Get faculty profile
+        faculty = Faculty.objects.get(user=user)
+        print(f"Faculty profile: {faculty.employee_id}, Department: {faculty.department}")
         
-        response = requests.get('http://localhost:8000/api/v1/faculty/dashboard/overview/', headers=headers)
-        print(f"Response status code: {response.status_code}")
-        print(f"Response headers: {response.headers}")
+        # Create a mock request
+        factory = RequestFactory()
+        request = factory.get('/api/v1/faculty/dashboard/')
         
-        if response.status_code == 200:
-            data = response.json()
-            print("Successfully fetched faculty dashboard data:")
-            print(json.dumps(data, indent=2))
-            return True
+        # Attach user and faculty to request (simulating middleware)
+        request.user = user
+        request.faculty = faculty
+        
+        # Call the dashboard overview function
+        response = dashboard_overview(request)
+        
+        if isinstance(response, JsonResponse):
+            print("Dashboard response received:")
+            print(f"Status code: {response.status_code}")
+            
+            # Get the response data
+            import json
+            response_data = json.loads(response.content)
+            print(f"Response data: {response_data}")
+            
+            if response.status_code == 200:
+                print("✓ Faculty dashboard data fetched successfully!")
+                print(f"Active classes: {response_data.get('activeClasses', 'N/A')}")
+                print(f"Total students: {response_data.get('totalStudents', 'N/A')}")
+                print(f"Pending grades: {response_data.get('pendingGrades', 'N/A')}")
+                print(f"Advised students: {response_data.get('advisedStudents', 'N/A')}")
+                print(f"Attendance rate: {response_data.get('attendanceRate', 'N/A')}%")
+            else:
+                print("✗ Failed to fetch faculty dashboard data")
+                print(f"Error message: {response_data.get('message', 'Unknown error')}")
         else:
-            print(f"Failed to fetch faculty dashboard data. Status code: {response.status_code}")
-            print(f"Response content: {response.text}")
-            return False
+            print("Unexpected response type")
+            
+    except User.DoesNotExist:
+        print("Faculty user 2221002 not found")
+    except Faculty.DoesNotExist:
+        print("Faculty profile not found")
     except Exception as e:
-        print(f"Error testing faculty dashboard: {e}")
-        return False
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
-    print("Testing faculty dashboard data fetch...")
-    
-    # Generate a test token
-    token = generate_test_token()
-    if not token:
-        sys.exit(1)
-    
-    # Test the faculty dashboard
-    success = test_faculty_dashboard(token)
-    if success:
-        print("\n✓ Faculty dashboard data fetch test passed!")
-    else:
-        print("\n✗ Faculty dashboard data fetch test failed!")
-        sys.exit(1)
+    print("Testing faculty dashboard data fetching...")
+    test_faculty_dashboard()

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
 
 interface Course {
   id: number;
@@ -77,9 +78,15 @@ export function CoursesView() {
                   {course.code} • {course.credits} Credits
                 </p>
               </div>
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-                {course.status}
-              </span>
+              {course.status === 'Active' ? (
+                <Badge variant="default">Active</Badge>
+              ) : course.status === 'Completed' ? (
+                <Badge variant="outline">Completed</Badge>
+              ) : course.status === 'Dropped' ? (
+                <Badge variant="destructive">Dropped</Badge>
+              ) : (
+                <Badge variant="secondary">{course.status}</Badge>
+              )}
             </div>
 
             <div className="px-4 pb-4 space-y-4">

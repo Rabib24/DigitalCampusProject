@@ -61,6 +61,13 @@ pytz>=2023.3
 # Utilities
 Faker>=19.6.0
 
+# AI Dependencies
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+nltk>=3.8.0
+spacy>=3.6.0
+
 gunicorn             # Production server
 dj-database-url      # To read DATABASE_URL from Render
 whitenoise           # To serve static files (CSS/JS)

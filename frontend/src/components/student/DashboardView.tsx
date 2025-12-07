@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiGet } from "@/lib/api";
 import { getUserData } from "@/lib/auth";
+import EnrollmentPeriodNotification from "./EnrollmentPeriodNotification";
 
 interface DashboardData {
   cgpa: number;
@@ -64,6 +65,8 @@ export function DashboardView() {
         <h2 className="text-3xl font-bold text-foreground">Welcome back, {user?.first_name}!</h2>
         <p className="text-muted-foreground mt-1">Here&apos;s your academic overview</p>
       </div>
+
+      <EnrollmentPeriodNotification />
 
       {/* Alert Banner */}
       <div className="flex items-start gap-3 rounded-lg border border-accent/50 bg-accent/5 px-4 py-3 text-sm">

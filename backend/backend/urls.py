@@ -18,16 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 
 api_v1_patterns = ([
+    path('ai/', include('ai_service.urls')),
     path('auth/', include('users.urls')),
     path('faculty/', include('faculty.urls')),
     path('admin/', include('admin_dashboard.urls')),
     path('library/', include('library_staff.urls')),
     path('finance/', include('finance_admin.urls')),
-    path('it/', include('it_admin.urls')),  # Add this line
+    path('it/', include('it_admin.urls')),
     path('search/', include('search_urls')),
     path('security/', include('security_urls')),
-    path('student/', include('student.urls')),
-], 'v1')
+    path('student/', include('student.urls')),], 'v1')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

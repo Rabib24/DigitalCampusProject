@@ -1148,6 +1148,195 @@ def manage_waitlist(request, course_id):
     }, status=405)
 
 @csrf_exempt
+def get_course_roster(request, course_id):
+    """Get class roster for a specific course"""
+    if request.method == 'GET':
+        try:
+            # Get faculty from request (attached by middleware)
+            faculty_profile = request.faculty
+            
+            # Verify faculty teaches this course
+            try:
+                course = Course.objects.get(id=course_id, instructor_id=faculty_profile.employee_id)  # type: ignore
+            except Course.DoesNotExist:  # type: ignore
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Course not found or access denied'
+                }, status=404)
+            
+            # Get all enrollments for this course (active, completed, dropped)
+            enrollments = Enrollment.objects.filter(course_id=course_id)  # type: ignore
+            
+            # Apply filtering and sorting
+            enrollments = apply_filtering_and_sorting(enrollments, request, 'enrollments')
+            
+            # Return paginated response
+            return paginate_enrollments(enrollments, request)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': 'Failed to retrieve course roster'
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Method not allowed'
+    }, status=405)
+
+
+@csrf_exempt
+def manage_course_enrollment(request, course_id):
+    """Manage course enrollment - add, update, or remove students"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Get faculty from request (attached by middleware)
+            faculty_profile = request.faculty
+            
+            # Verify faculty teaches this course
+            try:
+                course = Course.objects.get(id=course_id, instructor_id=faculty_profile.employee_id)  # type: ignore
+            except Course.DoesNotExist:  # type: ignore
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Course not found or access denied'
+                }, status=404)
+            
+            # Get action from request data
+            action = data.get('action')  # 'add', 'remove', 'update_status'
+            student_id = data.get('student_id')
+            
+            if action not in ['add', 'remove', 'update_status']:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid action. Must be "add", "remove", or "update_status".'
+                }, status=400)
+            
+            if not student_id:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Student ID is required.'
+                }, status=400)
+            
+            if action == 'add':
+                # Add student to course
+                # Check if student is already enrolled
+                if Enrollment.objects.filter(course_id=course_id, student_id=student_id).exists():  # type: ignore
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Student is already enrolled in this course'
+                    }, status=400)
+                
+                # Check if course is at enrollment limit
+                current_enrollment_count = Enrollment.objects.filter(course_id=course_id, status='active').count()  # type: ignore
+                if current_enrollment_count >= course.enrollment_limit:
+                    # Add to waitlist instead
+                    enrollment = Enrollment(
+                        id=str(uuid.uuid4()),
+                        course_id=course_id,
+                        student_id=student_id,
+                        status='waitlisted'
+                    )
+                    message = 'Student added to waitlist - course is at capacity'
+                else:
+                    # Add to course
+                    enrollment = Enrollment(
+                        id=str(uuid.uuid4()),
+                        course_id=course_id,
+                        student_id=student_id,
+                        status='active'
+                    )
+                    message = 'Student enrolled successfully'
+                
+                # Save enrollment
+                enrollment.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': message,
+                    'data': enrollment.to_json()
+                })
+            
+            elif action == 'remove':
+                # Remove student from course
+                try:
+                    enrollment = Enrollment.objects.get(course_id=course_id, student_id=student_id)  # type: ignore
+                except Enrollment.DoesNotExist:  # type: ignore
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Student is not enrolled in this course'
+                    }, status=404)
+                
+                # Delete enrollment
+                enrollment.delete()
+                
+                # If there are students on the waitlist and the course is now below capacity,
+                # automatically enroll the next student from the waitlist
+                current_enrollment_count = Enrollment.objects.filter(
+                    course_id=course_id, 
+                    status='active'
+                ).count()  # type: ignore
+                
+                if current_enrollment_count < course.enrollment_limit:
+                    # Get the next waitlisted student
+                    waitlisted_enrollment = Enrollment.objects.filter(
+                        course_id=course_id, 
+                        status='waitlisted'
+                    ).order_by('created_at').first()  # type: ignore
+                    
+                    if waitlisted_enrollment:
+                        waitlisted_enrollment.status = 'active'
+                        waitlisted_enrollment.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Student removed from course successfully'
+                })
+            
+            elif action == 'update_status':
+                # Update enrollment status
+                try:
+                    enrollment = Enrollment.objects.get(course_id=course_id, student_id=student_id)  # type: ignore
+                except Enrollment.DoesNotExist:  # type: ignore
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Student is not enrolled in this course'
+                    }, status=404)
+                
+                # Get new status from request data
+                new_status = data.get('status')
+                if new_status not in ['active', 'dropped', 'completed', 'waitlisted']:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Invalid status. Must be "active", "dropped", "completed", or "waitlisted".'
+                    }, status=400)
+                
+                # Update status
+                old_status = enrollment.status
+                enrollment.status = new_status
+                enrollment.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Enrollment status updated from {old_status} to {new_status}',
+                    'data': enrollment.to_json()
+                })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': 'Failed to manage course enrollment'
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Method not allowed'
+    }, status=405)
+
+
+@csrf_exempt
 def get_course_waitlist(request, course_id):
     """Get all waitlisted students for a specific course"""
     if request.method == 'GET':
