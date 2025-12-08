@@ -192,7 +192,7 @@ def logout_view(request):
             token = auth_header.split(' ')[1]
             
             # Add token to blacklist
-            from .token_blacklist import add_token_to_blacklist
+            from .token_blacklist_modified import add_token_to_blacklist
             
             if add_token_to_blacklist(token):
                 return JsonResponse({

@@ -16,18 +16,25 @@ class AdminRoleMiddleware(MiddlewareMixin):
         self.get_response = get_response
         # Initialize Redis connection
         try:
-            # Use environment variables from .env file
-            redis_host = getattr(settings, 'REDIS_NODE_1_HOST', 'localhost')
-            redis_port = getattr(settings, 'REDIS_NODE_1_PORT', 7001)
+            import os
+            # Use environment variables or default configuration
+            redis_config = {
+                'HOST': os.getenv('REDIS_NODE_1_HOST', 'localhost'),
+                'PORT': int(os.getenv('REDIS_NODE_1_PORT', 6379)),
+                'DB': 0,
+                'SOCKET_CONNECT_TIMEOUT': 2,
+                'SOCKET_TIMEOUT': 2,
+                'RETRY_ON_TIMEOUT': False,
+            }
             
             # Set a shorter timeout for Redis connection
             self.redis_client = redis.Redis(
-                host=redis_host,
-                port=redis_port,
-                db=0,
-                socket_connect_timeout=2,  # 2 second timeout for connection
-                socket_timeout=2,  # 2 second timeout for operations
-                retry_on_timeout=False  # Don't retry on timeout
+                host=redis_config['HOST'],
+                port=redis_config['PORT'],
+                db=redis_config['DB'],
+                socket_connect_timeout=redis_config['SOCKET_CONNECT_TIMEOUT'],
+                socket_timeout=redis_config['SOCKET_TIMEOUT'],
+                retry_on_timeout=redis_config['RETRY_ON_TIMEOUT'],
             )
             
             # Test the connection with a short timeout
@@ -35,12 +42,15 @@ class AdminRoleMiddleware(MiddlewareMixin):
         except Exception as e:
             # If Redis is not available, set client to None
             self.redis_client = None
-            print(f"Warning: Redis connection failed in admin middleware: {e}")
-            print("Redis-dependent features will be disabled.")
-            
+            # Show a more informative message
+            if getattr(settings, 'DEBUG', False):
+                print(f"Info: Redis not available in admin middleware ({type(e).__name__}). Session management features will be limited.")
+            else:
+                print("Info: Redis not available. Session management features will be limited.")
+
     def process_request(self, request):
         # Only apply to admin routes
-        if request.path.startswith('/api/v1/admin/'):
+        if request.path.startswith('/api/v1/admin/') or '/admin/' in request.path:
             # Skip authentication for login endpoint
             if request.path == '/api/v1/auth/login/' or request.path == '/api/v1/auth/register/':
                 return None

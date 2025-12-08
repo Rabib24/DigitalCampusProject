@@ -1,7 +1,7 @@
 import jwt
 from django.http import JsonResponse
 from django.conf import settings
-from .token_blacklist import is_token_blacklisted
+from .token_blacklist_modified import is_token_blacklisted
 
 
 class JWTAuthenticationMiddleware:

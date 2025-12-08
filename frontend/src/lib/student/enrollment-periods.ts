@@ -18,7 +18,7 @@ export class StudentEnrollmentPeriodsService {
   // Get current enrollment period
   static async getCurrentEnrollmentPeriod(): Promise<EnrollmentPeriod | null> {
     try {
-      const response = await apiGet('/student/admin/enrollment/periods/list/');
+      const response = await apiGet('/student/enrollment/periods/');
       const data = await response.json();
       
       if (data.enrollment_periods && Array.isArray(data.enrollment_periods)) {
@@ -42,7 +42,7 @@ export class StudentEnrollmentPeriodsService {
   // Get all active enrollment periods
   static async getActiveEnrollmentPeriods(): Promise<EnrollmentPeriod[]> {
     try {
-      const response = await apiGet('/student/admin/enrollment/periods/list/');
+      const response = await apiGet('/student/enrollment/periods/');
       const data = await response.json();
       
       if (data.enrollment_periods && Array.isArray(data.enrollment_periods)) {

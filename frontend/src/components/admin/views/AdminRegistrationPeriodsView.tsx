@@ -19,7 +19,7 @@ import {
   AlertCircle 
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AdminEnrollmentPeriodsService, type EnrollmentPeriod, type CreateEnrollmentPeriodData } from "@/lib/admin/enrollment-periods";
+import { AdminEnrollmentPeriodsService, type EnrollmentPeriod, type CreateEnrollmentPeriodData, type UpdateEnrollmentPeriodData } from "@/lib/admin/enrollment-periods";
 
 export function AdminRegistrationPeriodsView() {
   const [periods, setPeriods] = useState<EnrollmentPeriod[]>([]);
@@ -58,11 +58,15 @@ export function AdminRegistrationPeriodsView() {
 
   const handleCreatePeriod = async () => {
     try {
+      // Format datetime for submission
+      const startDateTime = new Date(formData.start_date).toISOString();
+      const endDateTime = new Date(formData.end_date).toISOString();
+      
       const data: CreateEnrollmentPeriodData = {
         name: formData.name,
         description: formData.description,
-        start_date: formData.start_date,
-        end_date: formData.end_date,
+        start_date: startDateTime,
+        end_date: endDateTime,
         student_group: formData.student_group,
         is_active: formData.is_active
       };
@@ -88,7 +92,20 @@ export function AdminRegistrationPeriodsView() {
     if (!editingPeriod) return;
     
     try {
-      await AdminEnrollmentPeriodsService.updateEnrollmentPeriod(editingPeriod.id, formData);
+      // Format datetime for submission
+      const startDateTime = new Date(formData.start_date).toISOString();
+      const endDateTime = new Date(formData.end_date).toISOString();
+      
+      const updateData: UpdateEnrollmentPeriodData = {
+        name: formData.name || undefined,
+        description: formData.description || undefined,
+        start_date: startDateTime,
+        end_date: endDateTime,
+        student_group: formData.student_group || undefined,
+        is_active: formData.is_active
+      };
+      
+      await AdminEnrollmentPeriodsService.updateEnrollmentPeriod(editingPeriod.id, updateData);
       setEditingPeriod(null);
       loadEnrollmentPeriods();
     } catch (err) {
@@ -109,11 +126,15 @@ export function AdminRegistrationPeriodsView() {
 
   const startEditing = (period: EnrollmentPeriod) => {
     setEditingPeriod(period);
+    // Convert ISO string to local datetime format for input
+    const startDate = period.start_date ? new Date(period.start_date).toLocaleString('sv-SE').substring(0, 16) : "";
+    const endDate = period.end_date ? new Date(period.end_date).toLocaleString('sv-SE').substring(0, 16) : "";
+    
     setFormData({
       name: period.name,
       description: period.description,
-      start_date: period.start_date,
-      end_date: period.end_date,
+      start_date: startDate,
+      end_date: endDate,
       student_group: period.student_group,
       is_active: period.is_active
     });
@@ -133,7 +154,13 @@ export function AdminRegistrationPeriodsView() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    } catch (e) {
+      return dateString;
+    }
   };
 
   const isCurrentPeriod = (period: EnrollmentPeriod) => {
@@ -201,11 +228,11 @@ export function AdminRegistrationPeriodsView() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="start_date">Start Date</Label>
+                <Label htmlFor="start_date">Start Date & Time</Label>
                 <div className="relative">
                   <Input
                     id="start_date"
-                    type="date"
+                    type="datetime-local"
                     value={formData.start_date}
                     onChange={(e) => setFormData({...formData, start_date: e.target.value})}
                   />
@@ -214,11 +241,11 @@ export function AdminRegistrationPeriodsView() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="end_date">End Date</Label>
+                <Label htmlFor="end_date">End Date & Time</Label>
                 <div className="relative">
                   <Input
                     id="end_date"
-                    type="date"
+                    type="datetime-local"
                     value={formData.end_date}
                     onChange={(e) => setFormData({...formData, end_date: e.target.value})}
                   />

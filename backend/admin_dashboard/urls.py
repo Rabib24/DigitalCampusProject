@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import enrollment_views
+from . import enrollment_period_views
 
 urlpatterns = [
     # Admin dashboard endpoints
@@ -22,6 +23,12 @@ urlpatterns = [
     path('enrollment/overrides/', enrollment_views.get_enrollment_overrides, name='admin_enrollment_overrides'),
     path('enrollment/overrides/create/', enrollment_views.create_enrollment_override_request, name='admin_create_enrollment_override'),
     path('enrollment/overrides/<str:request_id>/', enrollment_views.process_enrollment_override, name='admin_process_enrollment_override'),
+    
+    # Enrollment Period endpoints
+    path('enrollment/periods/', enrollment_period_views.get_enrollment_periods, name='admin_get_enrollment_periods'),
+    path('enrollment/periods/create/', enrollment_period_views.create_enrollment_period, name='admin_create_enrollment_period'),
+    path('enrollment/periods/<str:period_id>/update/', enrollment_period_views.update_enrollment_period, name='admin_update_enrollment_period'),
+    path('enrollment/periods/<str:period_id>/delete/', enrollment_period_views.delete_enrollment_period, name='admin_delete_enrollment_period'),
     
     # Course faculty management endpoints
     path('courses/<str:course_id>/faculty/', enrollment_views.get_course_faculty, name='admin_get_course_faculty'),

@@ -30,26 +30,31 @@ class RateLimiter:
         """
         cache_key = f"{key_prefix}:{client_ip}"
         
-        # Get current count and timestamp from cache
-        cached_data = cache.get(cache_key)
-        
-        if cached_data is None:
-            # First request in window
-            cache.set(cache_key, {'count': 1, 'timestamp': time.time()}, window)
+        try:
+            # Get current count and timestamp from cache
+            cached_data = cache.get(cache_key)
+            
+            if cached_data is None:
+                # First request in window
+                cache.set(cache_key, {'count': 1, 'timestamp': time.time()}, window)
+                return False
+            
+            # Check if window has expired
+            if time.time() - cached_data['timestamp'] > window:
+                # Window expired, reset counter
+                cache.set(cache_key, {'count': 1, 'timestamp': time.time()}, window)
+                return False
+            
+            # Increment counter
+            cached_data['count'] += 1
+            cache.set(cache_key, cached_data, window)
+            
+            # Check if limit exceeded
+            return cached_data['count'] > limit
+        except Exception as e:
+            # If cache is not available, allow the request (no rate limiting)
+            print(f"Cache error in rate limiter: {e}")
             return False
-        
-        # Check if window has expired
-        if time.time() - cached_data['timestamp'] > window:
-            # Window expired, reset counter
-            cache.set(cache_key, {'count': 1, 'timestamp': time.time()}, window)
-            return False
-        
-        # Increment counter
-        cached_data['count'] += 1
-        cache.set(cache_key, cached_data, window)
-        
-        # Check if limit exceeded
-        return cached_data['count'] > limit
     
     @staticmethod
     def get_client_ip(request):
@@ -82,12 +87,16 @@ def enrollment_rate_limit(limit=10, window=60, key_prefix='enrollment'):
             # Get client IP
             client_ip = RateLimiter.get_client_ip(request)
             
-            # Check rate limit
-            if RateLimiter.is_rate_limited(client_ip, key_prefix, limit, window):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Rate limit exceeded. Please try again later.'
-                }, status=429)
+            try:
+                # Check rate limit
+                if RateLimiter.is_rate_limited(client_ip, key_prefix, limit, window):
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Rate limit exceeded. Please try again later.'
+                    }, status=429)
+            except Exception as e:
+                # If rate limiter fails, allow the request
+                print(f"Rate limiter error: {e}")
             
             # Proceed with the view function
             return view_func(request, *args, **kwargs)

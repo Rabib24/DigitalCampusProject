@@ -250,3 +250,5 @@ const EnrollmentCartComponent = memo(({ isOpen, onClose, onEnroll }: EnrollmentC
     </div>
   );
 });
+
+export { EnrollmentCartComponent as EnrollmentCart };

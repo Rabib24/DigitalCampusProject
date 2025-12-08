@@ -40,6 +40,7 @@ import { AdminPermissionManagementView } from "@/components/admin/views/AdminPer
 import { AdminGradeManagementView } from "@/components/admin/views/AdminGradeManagementView";
 import { AdminReportingView } from "@/components/admin/views/AdminReportingView";
 import { AdminStudentManagementView } from "@/components/admin/views/AdminStudentManagementView";
+import { AdminRegistrationPeriodsView } from "@/components/admin/views/AdminRegistrationPeriodsView";
 import { AdminProtectedRoute } from "@/components/admin/AdminProtectedRoute";
 
 export default function AdminDashboardPage() {
@@ -51,6 +52,7 @@ export default function AdminDashboardPage() {
     { id: "users", label: "User Management", icon: Users },
     { id: "permissions", label: "Permission Management", icon: Shield },
     { id: "enrollment", label: "Enrollment Stats", icon: BarChart3 },
+    { id: "enrollment-periods", label: "Enrollment Periods", icon: Calendar },
     { id: "budget", label: "Budget Tracking", icon: DollarSign },
     { id: "courses", label: "Course Management", icon: BookOpen },
     { id: "grades", label: "Grade Management", icon: FileSpreadsheet },
@@ -78,6 +80,8 @@ export default function AdminDashboardPage() {
         return <AdminPermissionManagementView />;
       case "enrollment":
         return <AdminEnrollmentStatsView />;
+      case "enrollment-periods":
+        return <AdminRegistrationPeriodsView />;
       case "budget":
         return <AdminBudgetTrackingView />;
       case "courses":

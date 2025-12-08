@@ -7,8 +7,8 @@ class EnrollmentPeriod(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
     student_group = models.CharField(max_length=50, blank=True)  # e.g., 'freshmen', 'sophomores', etc.
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -19,12 +19,12 @@ class EnrollmentPeriod(models.Model):
     
     def is_current(self):
         """Check if this enrollment period is currently active"""
-        current_date = timezone.now().date()
-        return self.is_active and self.start_date <= current_date <= self.end_date
+        current_datetime = timezone.now()
+        return self.is_active and self.start_date <= current_datetime <= self.end_date
     
     def to_json(self):
         """Convert enrollment period to JSON format"""
-        # Convert date fields to string representations
+        # Convert datetime fields to string representations
         start_date_str = None
         end_date_str = None
         created_at_str = None
@@ -32,25 +32,25 @@ class EnrollmentPeriod(models.Model):
         
         try:
             if self.start_date:
-                start_date_str = str(self.start_date)
+                start_date_str = self.start_date.isoformat()
         except:
             pass
             
         try:
             if self.end_date:
-                end_date_str = str(self.end_date)
+                end_date_str = self.end_date.isoformat()
         except:
             pass
             
         try:
             if self.created_at:
-                created_at_str = str(self.created_at)
+                created_at_str = self.created_at.isoformat()
         except:
             pass
             
         try:
             if self.updated_at:
-                updated_at_str = str(self.updated_at)
+                updated_at_str = self.updated_at.isoformat()
         except:
             pass
         
@@ -459,3 +459,40 @@ class FacultyApprovalRequest(models.Model):
     
     def __str__(self):
         return f"Faculty Approval Request: {self.student.student_id} for {self.course.code} - {self.approval_type} ({self.status})"
+
+
+class StudentEnrollmentCart(models.Model):
+    """Model to track student enrollment cart items"""
+    id = models.CharField(max_length=50, primary_key=True)
+    student = models.ForeignKey('users.Student', on_delete=models.CASCADE, related_name='enrollment_carts')
+    course = models.ForeignKey('courses.Course', on_delete=models.CASCADE, related_name='cart_items')
+    added_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        ordering = ['added_at']
+        unique_together = ('student', 'course')
+    
+    def to_json(self):
+        """Convert cart item to JSON format"""
+        # Convert datetime fields to string representations
+        added_at_str = None
+        
+        try:
+            if self.added_at:
+                added_at_str = str(self.added_at)
+        except:
+            pass
+        
+        return {
+            'id': self.id,
+            'student_id': self.student.student_id,
+            'course_id': self.course.id,
+            'course_name': self.course.name,
+            'course_code': self.course.code,
+            'credits': self.course.credits,
+            'department': self.course.department,
+            'added_at': added_at_str,
+        }
+    
+    def __str__(self):
+        return f"Cart Item: {self.student.student_id} - {self.course.code}"

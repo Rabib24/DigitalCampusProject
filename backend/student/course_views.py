@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import models
 from courses.models import Course, Enrollment, Section
 from users.models import User, Student
+from .models import EnrollmentPeriod  # Add this import
 from django.conf import settings
 import json
 import jwt
@@ -220,9 +221,9 @@ def get_recommended_courses_view(request):
         try:
             from courses.models import Course, CoursePrerequisite
             # Get the authenticated student
-            student = get_student_from_request(request)
+            student, error = get_authenticated_student(request)  # Use the correct function
             if not student:
-                return JsonResponse({'success': False, 'message': 'Authentication required'}, status=401)
+                return JsonResponse({'success': False, 'message': error}, status=401)
             
             # Get student's major/program
             student_major = student.degree_program
@@ -352,9 +353,20 @@ def validate_enrollment_limits(student):
     
     current_courses = current_enrollments.count()
     
-    # Check maximum limits
-    if current_credits >= 18 or current_courses >= 6:
-        return False, "Maximum enrollment limit reached (18 credits or 6 courses)"
+    # Check maximum limits with more detailed feedback
+    if current_credits >= 18:
+        return False, f"Maximum credit limit reached. Current: {current_credits}/18 credits."
+    
+    if current_courses >= 6:
+        return False, f"Maximum course limit reached. Current: {current_courses}/6 courses."
+    
+    # Check for special circumstances (e.g., student athlete, honors student, etc.)
+    # These students might have different limits
+    special_status = getattr(student, 'special_enrollment_status', None)
+    if special_status:
+        # Could have different limits based on special status
+        # This is a placeholder for future extension
+        pass
     
     return True, "Enrollment limits satisfied"
 
@@ -378,66 +390,116 @@ def validate_minimum_enrollment(student):
     
     # Check minimum requirements (2 courses OR 6 credits, whichever is reached first)
     if current_courses < 2 and current_credits < 6:
-        return False, "Minimum enrollment requirement not met (at least 2 courses or 6 credits required)"
+        return False, f"Minimum enrollment requirement not met. Current: {current_courses} courses, {current_credits} credits. Required: at least 2 courses or 6 credits."
+    
+    # Check for special circumstances that might modify requirements
+    special_programs = getattr(student, 'special_programs', [])
+    if special_programs:
+        # Some special programs might have different minimum requirements
+        # This is a placeholder for future extension
+        pass
     
     return True, "Minimum enrollment requirements satisfied"
 
 
-# In-memory cart storage (in a real application, this would be stored in the database)
-cart_storage = {}
+# Cart functionality now uses database storage
 
 
-def get_student_cart_key(student):
-    """Generate a unique key for the student's cart"""
-    return f"cart_{student.student_id}"
+def add_to_cart_db(student, course):
+    """Add a course to the student's cart in database"""
+    try:
+        from .models import StudentEnrollmentCart
+        import uuid
+        
+        # Check if course already in cart
+        existing_item = StudentEnrollmentCart.objects.filter(
+            student=student, 
+            course=course
+        ).first()
+        
+        if existing_item:
+            return True, "Course already in cart"
+        
+        # Add course to cart
+        cart_item = StudentEnrollmentCart(
+            id=str(uuid.uuid4()),
+            student=student,
+            course=course
+        )
+        cart_item.save()
+        
+        return True, "Course added to cart successfully"
+    except Exception as e:
+        return False, f"Failed to add course to cart: {str(e)}"
 
 
-def add_to_cart_storage(student, course_data):
-    """Add a course to the student's cart in storage"""
-    cart_key = get_student_cart_key(student)
-    if cart_key not in cart_storage:
-        cart_storage[cart_key] = []
-    
-    # Check if course already in cart
-    for item in cart_storage[cart_key]:
-        if item.get('course_id') == course_data.get('course_id'):
-            return  # Already in cart
-    
-    cart_storage[cart_key].append(course_data)
+def remove_from_cart_db(student, course_id):
+    """Remove a course from the student's cart in database"""
+    try:
+        from .models import StudentEnrollmentCart
+        from courses.models import Course
+        
+        # Get the course
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return False, "Course not found"
+        
+        # Remove course from cart
+        StudentEnrollmentCart.objects.filter(
+            student=student, 
+            course=course
+        ).delete()
+        
+        return True, "Course removed from cart successfully"
+    except Exception as e:
+        return False, f"Failed to remove course from cart: {str(e)}"
 
 
-def remove_from_cart_storage(student, course_id):
-    """Remove a course from the student's cart in storage"""
-    cart_key = get_student_cart_key(student)
-    if cart_key in cart_storage:
-        cart_storage[cart_key] = [item for item in cart_storage[cart_key] if item.get('course_id') != course_id]
+def get_cart_db(student):
+    """Get the student's cart from database"""
+    try:
+        from .models import StudentEnrollmentCart
+        
+        # Get cart items
+        cart_items = StudentEnrollmentCart.objects.filter(student=student)
+        
+        # Convert to JSON format
+        cart_data = []
+        for item in cart_items:
+            cart_data.append(item.to_json())
+        
+        return True, cart_data
+    except Exception as e:
+        return False, f"Failed to fetch cart: {str(e)}"
 
 
-def get_cart_storage(student):
-    """Get the student's cart from storage"""
-    cart_key = get_student_cart_key(student)
-    return cart_storage.get(cart_key, [])
-
-
-def clear_cart_storage(student):
-    """Clear the student's cart in storage"""
-    cart_key = get_student_cart_key(student)
-    if cart_key in cart_storage:
-        cart_storage[cart_key] = []
+def clear_cart_db(student):
+    """Clear the student's cart in database"""
+    try:
+        from .models import StudentEnrollmentCart
+        
+        # Clear cart
+        StudentEnrollmentCart.objects.filter(student=student).delete()
+        
+        return True, "Cart cleared successfully"
+    except Exception as e:
+        return False, f"Failed to clear cart: {str(e)}"
 
 
 def check_prerequisites(course_id, student):
-    """Check if student meets course prerequisites"""
+    """Check if student meets course prerequisites and corequisites"""
     try:
         from courses.models import Course, CoursePrerequisite
         course = Course.objects.get(id=course_id)
         
         # Get all prerequisites for this course
         prerequisites = CoursePrerequisite.objects.filter(course=course, is_corequisite=False)
+        corequisites = CoursePrerequisite.objects.filter(course=course, is_corequisite=True)
         
-        # If no prerequisites, return True
-        if not prerequisites.exists():
-            return True, "No prerequisites required"
+        # If no prerequisites or corequisites, return True
+        if not prerequisites.exists() and not corequisites.exists():
+            return True, "No prerequisites or corequisites required"
         
         # Get completed courses
         completed_enrollments = Enrollment.objects.filter(
@@ -445,6 +507,16 @@ def check_prerequisites(course_id, student):
             status='completed'
         )
         completed_course_ids = [enrollment.course_id for enrollment in completed_enrollments]
+        
+        # Get currently enrolled courses (for corequisite checking)
+        active_enrollments = Enrollment.objects.filter(
+            student_id=student.student_id, 
+            status='active'
+        )
+        active_course_ids = [enrollment.course_id for enrollment in active_enrollments]
+        
+        # Combine active and completed for corequisite checking
+        enrolled_course_ids = completed_course_ids + active_course_ids
         
         # Check if all prerequisites are met
         missing_prerequisites = []
@@ -455,7 +527,16 @@ def check_prerequisites(course_id, student):
         if missing_prerequisites:
             return False, f"Missing prerequisites: {missing_prerequisites}"
         
-        return True, "Prerequisites satisfied"
+        # Check if all corequisites are met (must be currently enrolled or completed)
+        missing_corequisites = []
+        for coreq_rel in corequisites:
+            if coreq_rel.prerequisite_course.id not in enrolled_course_ids:
+                missing_corequisites.append(coreq_rel.prerequisite_course.code)
+        
+        if missing_corequisites:
+            return False, f"Missing corequisites: {missing_corequisites}"
+        
+        return True, "Prerequisites and corequisites satisfied"
     except Course.DoesNotExist:
         return False, "Course not found"
     except Exception as e:
@@ -509,22 +590,56 @@ def check_academic_standing(course_id, student):
         # Get the course
         course = Course.objects.get(id=course_id)
         
-        # Check if course has academic standing requirements (this would be stored in course model)
-        # For now, we'll check if the course has a minimum GPA requirement
-        # This is a placeholder - in a real implementation, this would be stored in the course model
+        # Check if student has any academic probation or suspension
+        if hasattr(student, 'academic_status') and student.academic_status:
+            if student.academic_status.lower() in ['suspended', 'expelled', 'disqualified']:
+                return False, f"Academic standing requirement not met. Student is {student.academic_status.lower()}."
         
-        # Example: Some advanced courses might require a minimum GPA
-        # We'll simulate this by checking if it's an advanced course (300+ level) and requiring 2.5 GPA
-        if course.code and any(char.isdigit() for char in course.code):
-            # Extract numeric part of course code
-            import re
-            numbers = re.findall(r'\d+', course.code)
-            if numbers:
-                course_level = int(numbers[0])
-                # Advanced courses (300+ level) require minimum 2.5 GPA
-                if course_level >= 300:
-                    if student.cumulative_gpa is not None and float(student.cumulative_gpa) < 2.5:
-                        return False, f"Academic standing requirement not met. Minimum 2.5 GPA required for {course.code}"
+        # Check course-specific academic requirements
+        # This would ideally be stored in the course model in a real implementation
+        
+        # Extract numeric part of course code for level determination
+        import re
+        numbers = re.findall(r'\d+', course.code) if course.code else []
+        course_level = int(numbers[0]) if numbers else 0
+        
+        # Get student's current GPA
+        student_gpa = float(student.cumulative_gpa) if student.cumulative_gpa is not None else 0.0
+        
+        # Department-specific GPA requirements
+        department_requirements = {
+            'computer_science': 2.0,
+            'engineering': 2.5,
+            'business': 2.0,
+            'medicine': 3.0,
+            'law': 3.0
+        }
+        
+        # Check department minimum GPA if applicable
+        department = course.department.lower() if course.department else ''
+        if department in department_requirements:
+            min_gpa = department_requirements[department]
+            if student_gpa < min_gpa:
+                return False, f"Academic standing requirement not met. Minimum {min_gpa} GPA required for {department.title()} courses."
+        
+        # Advanced course requirements (300+ level)
+        if course_level >= 300:
+            # Advanced courses require minimum 2.5 GPA
+            if student_gpa < 2.5:
+                return False, f"Academic standing requirement not met. Minimum 2.5 GPA required for advanced {course.code} course."
+        
+        # Very advanced course requirements (400+ level)
+        if course_level >= 400:
+            # Very advanced courses require minimum 3.0 GPA
+            if student_gpa < 3.0:
+                return False, f"Academic standing requirement not met. Minimum 3.0 GPA required for very advanced {course.code} course."
+        
+        # Special program requirements
+        if hasattr(student, 'degree_program') and student.degree_program:
+            program = student.degree_program.lower()
+            # Honors program requires 3.5+ GPA
+            if 'honors' in program and student_gpa < 3.5:
+                return False, f"Academic standing requirement not met. Minimum 3.5 GPA required for Honors program."
         
         return True, "Academic standing requirements satisfied"
         
@@ -537,31 +652,63 @@ def check_academic_standing(course_id, student):
 def check_enrollment_period(course_id, student):
     """Check if student can enroll during current enrollment period"""
     try:
-        # Get current date
+        # Get current date and time
         from django.utils import timezone
-        current_date = timezone.now().date()
+        current_datetime = timezone.now()
         
         # Get all active enrollment periods
         active_periods = EnrollmentPeriod.objects.filter(is_active=True)
         
         # Check if any period is currently active
         current_period = None
-        for period in active_periods:
-            if period.start_date <= current_date <= period.end_date:
-                current_period = period
-                break
+        upcoming_period = None
+        earliest_upcoming_date = None
         
-        # If no active period, enrollment is not allowed
+        for period in active_periods:
+            # Check if period is currently active
+            if period.start_date <= current_datetime <= period.end_date:
+                current_period = period
+            # Check if period is upcoming
+            elif period.start_date > current_datetime:
+                if earliest_upcoming_date is None or period.start_date < earliest_upcoming_date:
+                    earliest_upcoming_date = period.start_date
+                    upcoming_period = period
+        
+        # If no active period, check if there's an upcoming period
         if not current_period:
-            return False, "No active enrollment period. Enrollment is currently closed."
+            if upcoming_period:
+                return False, f"Enrollment is not currently open. Next enrollment period begins on {upcoming_period.start_date}."
+            else:
+                return False, "No active enrollment period. Enrollment is currently closed."
         
         # Check if student belongs to the allowed group for this period
         # If student_group is empty, it's open to all students
         if current_period.student_group:
-            # For simplicity, we'll check if the student's degree program matches the student_group
-            # In a real implementation, this would be more sophisticated
-            if student.degree_program and current_period.student_group.lower() not in student.degree_program.lower():
+            # More sophisticated check for student group membership
+            student_groups = [group.strip().lower() for group in current_period.student_group.split(',')]
+            student_matches = False
+            
+            # Check if student's degree program matches any allowed group
+            if student.degree_program:
+                student_program_lower = student.degree_program.lower()
+                for group in student_groups:
+                    if group in student_program_lower or student_program_lower in group:
+                        student_matches = True
+                        break
+            
+            # If no match by degree program, check by student ID patterns
+            if not student_matches:
+                student_id_lower = student.student_id.lower()
+                for group in student_groups:
+                    if group in student_id_lower or student_id_lower in group:
+                        student_matches = True
+                        break
+            
+            if not student_matches:
                 return False, f"Enrollment period restricted to {current_period.student_group} students only."
+        
+        # Check if it's too early in the period (if configured)
+        # This could be extended to check specific time windows within the enrollment period
         
         return True, "Enrollment period validation passed"
         
@@ -581,23 +728,34 @@ def schedules_conflict(schedule1, schedule2):
     if not isinstance(schedule2, list):
         schedule2 = [schedule2]
     
+    # Normalize time formats for comparison
+    def normalize_time(time_str):
+        """Convert time string to minutes since midnight for easier comparison"""
+        if not time_str:
+            return 0
+        try:
+            hours, minutes = map(int, time_str.split(':'))
+            return hours * 60 + minutes
+        except:
+            return 0
+    
     # Check each time slot in schedule1 against each time slot in schedule2
     for slot1 in schedule1:
         for slot2 in schedule2:
             # Extract time information (assuming format like {"day": "Monday", "start": "09:00", "end": "10:30"})
             day1 = slot1.get('day', '') if isinstance(slot1, dict) else ''
-            start1 = slot1.get('start', '') if isinstance(slot1, dict) else ''
-            end1 = slot1.get('end', '') if isinstance(slot1, dict) else ''
+            start1 = normalize_time(slot1.get('start', '') if isinstance(slot1, dict) else '')
+            end1 = normalize_time(slot1.get('end', '') if isinstance(slot1, dict) else '')
             
             day2 = slot2.get('day', '') if isinstance(slot2, dict) else ''
-            start2 = slot2.get('start', '') if isinstance(slot2, dict) else ''
-            end2 = slot2.get('end', '') if isinstance(slot2, dict) else ''
+            start2 = normalize_time(slot2.get('start', '') if isinstance(slot2, dict) else '')
+            end2 = normalize_time(slot2.get('end', '') if isinstance(slot2, dict) else '')
             
             # Check if same day
             if day1 == day2 and day1 != '':
                 # Check if time ranges overlap
                 if start1 and end1 and start2 and end2:
-                    # Simple overlap check: (StartA < EndB) and (StartB < EndA)
+                    # Overlap check: (StartA < EndB) and (StartB < EndA)
                     if start1 < end2 and start2 < end1:
                         return True
     
@@ -641,6 +799,162 @@ def create_new_section(course, default_instructor_id=None):
         return None
 
 
+def enroll_in_course_helper(student, course_id):
+    """Helper function to enroll a student in a course"""
+    try:
+        from courses.models import Course, Enrollment, Section
+        
+        # Check if course exists
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return {'success': False, 'message': 'Course not found'}
+        
+        # Check enrollment limits
+        limits_valid, limits_message = validate_enrollment_limits(student)
+        if not limits_valid:
+            return {'success': False, 'message': limits_message}
+        
+        # Check prerequisites
+        prereqs_satisfied, prereq_message = check_prerequisites(course_id, student)
+        if not prereqs_satisfied:
+            return {'success': False, 'message': prereq_message}
+        
+        # Check schedule conflicts
+        schedule_clear, schedule_message = check_schedule_conflicts(course_id, student)
+        if not schedule_clear:
+            return {'success': False, 'message': schedule_message}
+        
+        # Check academic standing
+        standing_clear, standing_message = check_academic_standing(course_id, student)
+        if not standing_clear:
+            return {'success': False, 'message': standing_message}
+        
+        # Check enrollment period
+        period_clear, period_message = check_enrollment_period(course_id, student)
+        if not period_clear:
+            return {'success': False, 'message': period_message}
+        
+        # Check if already enrolled
+        existing_enrollment = Enrollment.objects.filter(
+            student_id=student.student_id,
+            course_id=course_id,
+            status__in=['active', 'completed']
+        ).first()
+        
+        if existing_enrollment:
+            return {'success': False, 'message': 'Already enrolled in this course'}
+        
+        # Check if course is full
+        enrolled_count = course.get_student_count()
+        if enrolled_count >= course.enrollment_limit:
+            # Check if there are any sections for this course
+            sections = Section.objects.filter(course=course)
+            
+            # If no sections exist, create the first one
+            if not sections.exists():
+                new_section = create_new_section(course)
+                if new_section:
+                    # Enroll student in the new section
+                    import uuid
+                    enrollment = Enrollment(
+                        id=str(uuid.uuid4()),
+                        student_id=student.student_id,
+                        course_id=course_id,
+                        section_id=new_section.id,
+                        status='active'
+                    )
+                    enrollment.save()
+                    
+                    # Add student to section
+                    new_section.add_student(student.student_id)
+                    
+                    return {
+                        'success': True,
+                        'message': f'Successfully enrolled in course {course_id} (Section {new_section.section_number})',
+                        'status': 'enrolled',
+                        'section_number': new_section.section_number,
+                        'section_created': True
+                    }
+                else:
+                    # Add student to waitlist if section creation fails
+                    course.add_to_waitlist(student.student_id)
+                    waitlist_position = course.get_waitlist_position(student.student_id)
+                    return {
+                        'success': True,
+                        'message': f'Course is full. You have been added to the waitlist at position {waitlist_position}',
+                        'status': 'waitlisted',
+                        'waitlist_position': waitlist_position
+                    }
+            else:
+                # Check if any existing sections have space
+                available_section = None
+                for section in sections:
+                    if not section.is_full():
+                        available_section = section
+                        break
+                
+                # If no sections have space, create a new section
+                if not available_section:
+                    new_section = create_new_section(course)
+                    if new_section:
+                        available_section = new_section
+                    else:
+                        # Add student to course waitlist if section creation fails
+                        course.add_to_waitlist(student.student_id)
+                        waitlist_position = course.get_waitlist_position(student.student_id)
+                        return {
+                            'success': True,
+                            'message': f'Course is full. You have been added to the waitlist at position {waitlist_position}',
+                            'status': 'waitlisted',
+                            'waitlist_position': waitlist_position
+                        }
+                
+                # Enroll student in available section
+                import uuid
+                enrollment = Enrollment(
+                    id=str(uuid.uuid4()),
+                    student_id=student.student_id,
+                    course_id=course_id,
+                    section_id=available_section.id,
+                    status='active'
+                )
+                enrollment.save()
+                
+                # Add student to section
+                available_section.add_student(student.student_id)
+                
+                return {
+                    'success': True,
+                    'message': f'Successfully enrolled in course {course_id} (Section {available_section.section_number})',
+                    'status': 'enrolled',
+                    'section_number': available_section.section_number,
+                    'section_created': False
+                }
+        
+        # Create enrollment in original course (no sections yet)
+        import uuid
+        enrollment = Enrollment(
+            id=str(uuid.uuid4()),
+            student_id=student.student_id,
+            course_id=course_id,
+            status='active'
+        )
+        enrollment.save()
+        
+        # Add student to course
+        course.add_student(student.student_id)
+        
+        return {
+            'success': True,
+            'message': f'Successfully enrolled in course {course_id}',
+            'status': 'enrolled'
+        }
+        
+    except Exception as e:
+        return {'success': False, 'message': f'Failed to enroll in course: {str(e)}'}
+
+
 @csrf_exempt
 @course_enrollment_rate_limit
 def enroll_in_course(request, course_id):
@@ -652,187 +966,59 @@ def enroll_in_course(request, course_id):
             return JsonResponse({'success': False, 'message': error}, status=401)
         
         try:
-            # Check if course exists
-            try:
-                course = Course.objects.get(id=course_id)
-            except Course.DoesNotExist:
-                return JsonResponse({'success': False, 'message': 'Course not found'}, status=404)
+            # Use the helper function to enroll in the course
+            result = enroll_in_course_helper(student, course_id)
             
-            # Check enrollment limits
-            limits_valid, limits_message = validate_enrollment_limits(student)
-            if not limits_valid:
-                return JsonResponse({'success': False, 'message': limits_message}, status=400)
-            
-            # Check prerequisites
-            prereqs_satisfied, prereq_message = check_prerequisites(course_id, student)
-            if not prereqs_satisfied:
-                return JsonResponse({'success': False, 'message': prereq_message}, status=400)
-            
-            # Check schedule conflicts
-            schedule_clear, schedule_message = check_schedule_conflicts(course_id, student)
-            if not schedule_clear:
-                return JsonResponse({'success': False, 'message': schedule_message}, status=400)
-            
-            # Check academic standing
-            standing_clear, standing_message = check_academic_standing(course_id, student)
-            if not standing_clear:
-                return JsonResponse({'success': False, 'message': standing_message}, status=400)
-            
-            # Check enrollment period
-            period_clear, period_message = check_enrollment_period(course_id, student)
-            if not period_clear:
-                return JsonResponse({'success': False, 'message': period_message}, status=400)
-            
-            # Check if already enrolled
-            existing_enrollment = Enrollment.objects.filter(
-                student_id=student.student_id,
-                course_id=course_id,
-                status__in=['active', 'completed']
-            ).first()
-            
-            if existing_enrollment:
+            if not result.get('success'):
                 return JsonResponse({
                     'success': False, 
-                    'message': 'Already enrolled in this course'
-                }, status=400)
+                    'message': result.get('message')
+                }, status=400 if 'message' in result else 500)
             
-            # Check if course is full
-            enrolled_count = course.get_student_count()
-            if enrolled_count >= course.enrollment_limit:
-                # Check if there are any sections for this course
-                from courses.models import Section
-                sections = Section.objects.filter(course=course)
-                
-                # If no sections exist, create the first one
-                if not sections.exists():
-                    new_section = create_new_section(course)
-                    if new_section:
-                        # Enroll student in the new section
-                        import uuid
-                        enrollment = Enrollment(
-                            id=str(uuid.uuid4()),
-                            student_id=student.student_id,
-                            course_id=course_id,
-                            section_id=new_section.id,
-                            status='active'
-                        )
-                        enrollment.save()
-                        
-                        # Add student to section
-                        new_section.add_student(student.student_id)
-                        
-                        # Log the enrollment action
-                        EnrollmentAuditLogger.log_enrollment(
-                            student=student,
-                            course=course,
-                            section=new_section,
-                            request=request,
-                            enrollment_id=enrollment.id,
-                            section_created=True,
-                            section_number=new_section.section_number
-                        )
-                        
-                        return JsonResponse({
-                            'success': True,
-                            'message': f'Successfully enrolled in course {course_id} (Section {new_section.section_number})',
-                            'enrollment': enrollment.to_json(),
-                            'section_created': True,
-                            'section_number': new_section.section_number
-                        })
-                    else:
-                        # Add student to waitlist if section creation fails
-                        course.add_to_waitlist(student.student_id)
-                        waitlist_position = course.get_waitlist_position(student.student_id)
-                        return JsonResponse({
-                            'success': True,
-                            'message': f'Course is full. You have been added to the waitlist at position {waitlist_position}',
-                            'waitlisted': True,
-                            'waitlist_position': waitlist_position
-                        })
-                else:
-                    # Check if any existing sections have space
-                    available_section = None
-                    for section in sections:
-                        if not section.is_full():
-                            available_section = section
-                            break
-                    
-                    # If no sections have space, create a new section
-                    if not available_section:
-                        new_section = create_new_section(course)
-                        if new_section:
-                            available_section = new_section
-                        else:
-                            # Add student to course waitlist if section creation fails
-                            course.add_to_waitlist(student.student_id)
-                            waitlist_position = course.get_waitlist_position(student.student_id)
-                            return JsonResponse({
-                                'success': True,
-                                'message': f'Course is full. You have been added to the waitlist at position {waitlist_position}',
-                                'waitlisted': True,
-                                'waitlist_position': waitlist_position
-                            })
-                    
-                    # Enroll student in available section
-                    import uuid
-                    enrollment = Enrollment(
-                        id=str(uuid.uuid4()),
+            # If enrollment was successful, log the action
+            if result.get('status') == 'enrolled':
+                try:
+                    from courses.models import Course, Enrollment
+                    course = Course.objects.get(id=course_id)
+                    enrollment = Enrollment.objects.get(
                         student_id=student.student_id,
                         course_id=course_id,
-                        section_id=available_section.id,
                         status='active'
                     )
-                    enrollment.save()
-                    
-                    # Add student to section
-                    available_section.add_student(student.student_id)
-                    
-                    section_info = f" (Section {available_section.section_number})" if hasattr(available_section, 'section_number') else ""
                     
                     # Log the enrollment action
                     EnrollmentAuditLogger.log_enrollment(
                         student=student,
                         course=course,
-                        section=available_section,
                         request=request,
                         enrollment_id=enrollment.id,
-                        section_info=section_info
+                        status=result.get('status'),
+                        section_number=result.get('section_number'),
+                        section_created=result.get('section_created', False)
                     )
-                    
-                    return JsonResponse({
-                        'success': True,
-                        'message': f'Successfully enrolled in course {course_id}{section_info}',
-                        'enrollment': enrollment.to_json(),
-                        'section_created': hasattr(available_section, 'section_number') and available_section.section_number > sections.count(),
-                        'section_number': available_section.section_number if hasattr(available_section, 'section_number') else None
-                    })
+                except Exception as log_error:
+                    # Log error but don't fail the enrollment
+                    print(f"Failed to log enrollment: {log_error}")
             
-            # Create enrollment in original course (no sections yet)
-            import uuid
-            enrollment = Enrollment(
-                id=str(uuid.uuid4()),
-                student_id=student.student_id,
-                course_id=course_id,
-                status='active'
-            )
-            enrollment.save()
-            
-            # Add student to course
-            course.add_student(student.student_id)
-            
-            # Log the enrollment action
-            EnrollmentAuditLogger.log_enrollment(
-                student=student,
-                course=course,
-                request=request,
-                enrollment_id=enrollment.id
-            )
-            
-            return JsonResponse({
+            # Return the result
+            response_data = {
                 'success': True,
-                'message': f'Successfully enrolled in course {course_id}',
-                'enrollment': enrollment.to_json()
-            })
+                'message': result.get('message')
+            }
+            
+            # Add additional fields if present in result
+            if 'enrollment' in result:
+                response_data['enrollment'] = result['enrollment']
+            if 'section_created' in result:
+                response_data['section_created'] = result['section_created']
+            if 'section_number' in result:
+                response_data['section_number'] = result['section_number']
+            if 'waitlisted' in result:
+                response_data['waitlisted'] = result['waitlisted']
+            if 'waitlist_position' in result:
+                response_data['waitlist_position'] = result['waitlist_position']
+            
+            return JsonResponse(response_data)
             
         except Exception as e:
             return JsonResponse({
@@ -1005,8 +1191,10 @@ def get_cart(request):
             return JsonResponse({'success': False, 'message': error}, status=401)
         
         try:
-            # Get cart items from storage
-            cart_items = get_cart_storage(student)
+            # Get cart items from database
+            success, cart_items = get_cart_db(student)
+            if not success:
+                return JsonResponse({'success': False, 'message': cart_items}, status=500)
             
             # Log the view cart action
             EnrollmentAuditLogger.log_view_cart(
@@ -1050,8 +1238,10 @@ def add_to_cart(request, course_id):
                 'added_date': timezone.now().isoformat()
             }
             
-            # Add to cart storage
-            add_to_cart_storage(student, course_data)
+            # Add to cart in database
+            success, message = add_to_cart_db(student, course)
+            if not success:
+                return JsonResponse({'success': False, 'message': message}, status=500)
             
             # Log the add to cart action
             EnrollmentAuditLogger.log_add_to_cart(
@@ -1083,8 +1273,10 @@ def remove_from_cart(request, course_id):
             return JsonResponse({'success': False, 'message': error}, status=401)
         
         try:
-            # Remove from cart storage
-            remove_from_cart_storage(student, course_id)
+            # Remove from cart in database
+            success, message = remove_from_cart_db(student, course_id)
+            if not success:
+                return JsonResponse({'success': False, 'message': message}, status=500)
             
             # Log the remove from cart action
             EnrollmentAuditLogger.log_remove_from_cart(
@@ -1115,8 +1307,10 @@ def clear_cart(request):
             return JsonResponse({'success': False, 'message': error}, status=401)
         
         try:
-            # Clear cart storage
-            clear_cart_storage(student)
+            # Clear cart in database
+            success, message = clear_cart_db(student)
+            if not success:
+                return JsonResponse({'success': False, 'message': message}, status=500)
             
             # Log the clear cart action
             EnrollmentAuditLogger.log_clear_cart(
@@ -1146,8 +1340,10 @@ def enroll_from_cart(request):
             return JsonResponse({'success': False, 'message': error}, status=401)
         
         try:
-            # Get cart items
-            cart_items = get_cart_storage(student)
+            # Get cart items from database
+            success, cart_items = get_cart_db(student)
+            if not success:
+                return JsonResponse({'success': False, 'message': cart_items}, status=500)
             
             if not cart_items:
                 return JsonResponse({'success': False, 'message': 'Cart is empty'}, status=400)
@@ -1362,7 +1558,7 @@ def enroll_from_cart(request):
                     })
             
             # Clear cart after enrollment attempt
-            clear_cart_storage(student)
+            clear_cart_db(student)
             
             # Log the enroll from cart action
             EnrollmentAuditLogger.log_enroll_from_cart(
@@ -1385,5 +1581,31 @@ def enroll_from_cart(request):
             
         except Exception as e:
             return JsonResponse({'success': False, 'message': f'Failed to enroll from cart: {str(e)}'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def get_student_enrollment_periods(request):
+    """Get all active enrollment periods for students"""
+    if request.method == 'GET':
+        try:
+            # Authenticate student
+            student, error = get_authenticated_student(request)
+            if not student:
+                return JsonResponse({'success': False, 'message': error}, status=401)
+            
+            # Get all active enrollment periods
+            enrollment_periods = EnrollmentPeriod.objects.filter(is_active=True)
+            
+            # Convert to JSON format
+            periods_data = []
+            for period in enrollment_periods:
+                periods_data.append(period.to_json())
+            
+            return JsonResponse({'enrollment_periods': periods_data})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to fetch enrollment periods: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)

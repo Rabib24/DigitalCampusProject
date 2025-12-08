@@ -4,11 +4,33 @@ from .models import EnrollmentPeriod
 from django.utils import timezone
 import json
 import uuid
+from datetime import datetime
 
 
 def check_admin_role(request):
     """Check if the authenticated user has admin role"""
     return hasattr(request, 'admin') and request.admin is not None
+
+
+def parse_datetime(datetime_str):
+    """Parse datetime string to datetime object"""
+    if not datetime_str:
+        return None
+    
+    try:
+        # Try parsing ISO format first
+        if 'T' in datetime_str:
+            return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+        else:
+            # Try parsing date only format
+            return datetime.fromisoformat(datetime_str)
+    except ValueError:
+        try:
+            # Try parsing with space separator
+            return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            # Try parsing date only
+            return datetime.strptime(datetime_str, '%Y-%m-%d')
 
 
 @csrf_exempt
@@ -38,13 +60,35 @@ def create_enrollment_period(request):
                     'message': 'Name, start_date, and end_date are required'
                 }, status=400)
             
+            # Parse datetime values
+            try:
+                parsed_start_date = parse_datetime(start_date)
+                parsed_end_date = parse_datetime(end_date)
+                
+                if not parsed_start_date or not parsed_end_date:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': 'Invalid date format. Please use ISO format (YYYY-MM-DDTHH:MM:SS)'
+                    }, status=400)
+                    
+                if parsed_start_date >= parsed_end_date:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': 'End date must be after start date'
+                    }, status=400)
+            except Exception as e:
+                return JsonResponse({
+                    'success': False, 
+                    'message': f'Error parsing dates: {str(e)}'
+                }, status=400)
+            
             # Create enrollment period
             enrollment_period = EnrollmentPeriod(
                 id=str(uuid.uuid4()),
                 name=name,
                 description=data.get('description', ''),
-                start_date=start_date,
-                end_date=end_date,
+                start_date=parsed_start_date,
+                end_date=parsed_end_date,
                 student_group=data.get('student_group', ''),
                 is_active=data.get('is_active', True)
             )
@@ -59,7 +103,7 @@ def create_enrollment_period(request):
             })
             
         except Exception as e:
-            return JsonResponse({'success': False, 'message': 'Failed to create enrollment period'}, status=500)
+            return JsonResponse({'success': False, 'message': f'Failed to create enrollment period: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 
@@ -84,7 +128,7 @@ def get_enrollment_periods(request):
             return JsonResponse({'enrollment_periods': periods_data})
             
         except Exception as e:
-            return JsonResponse({'success': False, 'message': 'Failed to fetch enrollment periods'}, status=500)
+            return JsonResponse({'success': False, 'message': f'Failed to fetch enrollment periods: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 
@@ -110,7 +154,7 @@ def get_enrollment_period(request, period_id):
             })
             
         except Exception as e:
-            return JsonResponse({'success': False, 'message': 'Failed to fetch enrollment period'}, status=500)
+            return JsonResponse({'success': False, 'message': f'Failed to fetch enrollment period: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 
@@ -142,13 +186,36 @@ def update_enrollment_period(request, period_id):
             if 'description' in data:
                 enrollment_period.description = data['description']
             if 'start_date' in data:
-                enrollment_period.start_date = data['start_date']
+                try:
+                    parsed_start_date = parse_datetime(data['start_date'])
+                    if parsed_start_date:
+                        enrollment_period.start_date = parsed_start_date
+                except Exception as e:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Error parsing start date: {str(e)}'
+                    }, status=400)
             if 'end_date' in data:
-                enrollment_period.end_date = data['end_date']
+                try:
+                    parsed_end_date = parse_datetime(data['end_date'])
+                    if parsed_end_date:
+                        enrollment_period.end_date = parsed_end_date
+                except Exception as e:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Error parsing end date: {str(e)}'
+                    }, status=400)
             if 'student_group' in data:
                 enrollment_period.student_group = data['student_group']
             if 'is_active' in data:
                 enrollment_period.is_active = data['is_active']
+            
+            # Validate date relationship
+            if enrollment_period.start_date >= enrollment_period.end_date:
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'End date must be after start date'
+                }, status=400)
             
             # Save enrollment period
             enrollment_period.save()
@@ -160,7 +227,7 @@ def update_enrollment_period(request, period_id):
             })
             
         except Exception as e:
-            return JsonResponse({'success': False, 'message': 'Failed to update enrollment period'}, status=500)
+            return JsonResponse({'success': False, 'message': f'Failed to update enrollment period: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 
@@ -189,6 +256,6 @@ def delete_enrollment_period(request, period_id):
             })
             
         except Exception as e:
-            return JsonResponse({'success': False, 'message': 'Failed to delete enrollment period'}, status=500)
+            return JsonResponse({'success': False, 'message': f'Failed to delete enrollment period: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)

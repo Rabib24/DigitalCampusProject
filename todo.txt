@@ -1,5 +1,16 @@
 IUB Digital Campus Project - Complete Task List
 ==============================================
+Current Problem:
+Registration Periods can not directly delete or update from the admin dashboard.
+
+student dashboard:
+Failed to load courses.
+Registration page design is not professional.
+All course list is not visible only 4 is showing. 
+Registration Course list should be visible in according to student's department.
+Assignments and Grades page can not fetch data from database and show errors.
+Co
+
 
 0. CODEBASE SETUP
 ==================

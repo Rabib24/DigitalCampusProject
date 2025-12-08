@@ -209,3 +209,5 @@ const RegistrationConfirmationComponent = memo(({ isOpen, onClose, enrollmentRes
     </div>
   );
 });
+
+export { RegistrationConfirmationComponent as RegistrationConfirmation };

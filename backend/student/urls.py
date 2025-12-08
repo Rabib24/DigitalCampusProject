@@ -1,8 +1,12 @@
 from django.urls import path
 from . import course_views
 from . import admin_views
+from . import views
 
 urlpatterns = [
+    # Student dashboard endpoint
+    path('dashboard/', views.student_dashboard, name='student_dashboard'),
+    
     # Student course enrollment endpoints
     path('courses/available/', course_views.get_available_courses, name='get_available_courses'),
     path('courses/search/', course_views.search_courses, name='search_courses'),
@@ -11,6 +15,9 @@ urlpatterns = [
     path('courses/<str:course_id>/drop/', course_views.drop_course, name='drop_course'),
     path('courses/waitlist/', course_views.get_waitlisted_courses, name='get_waitlisted_courses'),
     path('enrollments/', course_views.get_student_enrollments, name='get_student_enrollments'),
+    
+    # Student enrollment periods endpoint
+    path('enrollment/periods/', course_views.get_student_enrollment_periods, name='get_student_enrollment_periods'),
     
     # Student course cart endpoints
     path('enrollment/cart/', course_views.get_cart, name='get_cart'),

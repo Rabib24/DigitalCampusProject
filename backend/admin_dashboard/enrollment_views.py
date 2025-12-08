@@ -507,6 +507,34 @@ def create_enrollment_override_request(request):
 
 
 @csrf_exempt
+def get_special_enrollment_requests(request):
+    """Get all pending special enrollment requests"""
+    if request.method == 'GET':
+        try:
+            # Check if user has admin role
+            if not check_admin_role(request):
+                return JsonResponse({'success': False, 'message': 'Access denied'}, status=403)
+            
+            # Get all pending enrollment override requests
+            pending_requests = EnrollmentOverrideRequest.objects.filter(status='pending')
+            
+            # Convert to JSON format
+            special_requests = []
+            for req in pending_requests:
+                special_requests.append(req.to_json())
+            
+            return JsonResponse({
+                'success': True,
+                'special_requests': special_requests
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': 'Failed to fetch enrollment overrides'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
 def process_enrollment_override(request, request_id):
     """Process a special enrollment override request"""
     if request.method == 'POST':
@@ -557,5 +585,163 @@ def process_enrollment_override(request, request_id):
             
         except Exception as e:
             return JsonResponse({'success': False, 'message': f'Failed to process enrollment override: {str(e)}'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+# Enrollment Override Requests
+
+# Enrollment Period Management
+
+@csrf_exempt
+def get_enrollment_periods(request):
+    """Get all enrollment periods"""
+    if request.method == 'GET':
+        try:
+            # Check if user has admin role
+            if not check_admin_role(request):
+                return JsonResponse({'success': False, 'message': 'Access denied'}, status=403)
+            
+            from student.models import EnrollmentPeriod
+            
+            periods = EnrollmentPeriod.objects.all().order_by('-start_date')
+            
+            data = [period.to_json() for period in periods]
+            
+            return JsonResponse({
+                'success': True,
+                'data': data
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to fetch enrollment periods: {str(e)}'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def create_enrollment_period(request):
+    """Create a new enrollment period"""
+    if request.method == 'POST':
+        try:
+            # Check if user has admin role
+            if not check_admin_role(request):
+                return JsonResponse({'success': False, 'message': 'Access denied'}, status=403)
+            
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+            
+            # Extract fields
+            name = data.get('name')
+            start_date = data.get('start_date')
+            end_date = data.get('end_date')
+            description = data.get('description', '')
+            student_group = data.get('student_group', '')
+            is_active = data.get('is_active', True)
+            
+            if not name or not start_date or not end_date:
+                return JsonResponse({'success': False, 'message': 'Name, start date, and end date are required'}, status=400)
+            
+            from student.models import EnrollmentPeriod
+            
+            period = EnrollmentPeriod(
+                id=str(uuid.uuid4()),
+                name=name,
+                description=description,
+                start_date=start_date,
+                end_date=end_date,
+                student_group=student_group,
+                is_active=is_active
+            )
+            period.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Enrollment period created successfully',
+                'data': period.to_json()
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to create enrollment period: {str(e)}'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def update_enrollment_period(request, period_id):
+    """Update an existing enrollment period"""
+    if request.method == 'PUT':
+        try:
+            # Check if user has admin role
+            if not check_admin_role(request):
+                return JsonResponse({'success': False, 'message': 'Access denied'}, status=403)
+            
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+            
+            from student.models import EnrollmentPeriod
+            
+            try:
+                period = EnrollmentPeriod.objects.get(id=period_id)
+            except EnrollmentPeriod.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Enrollment period not found'}, status=404)
+            
+            # Update fields
+            if 'name' in data:
+                period.name = data['name']
+            if 'description' in data:
+                period.description = data['description']
+            if 'start_date' in data:
+                period.start_date = data['start_date']
+            if 'end_date' in data:
+                period.end_date = data['end_date']
+            if 'student_group' in data:
+                period.student_group = data['student_group']
+            if 'is_active' in data:
+                period.is_active = data['is_active']
+            
+            period.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Enrollment period updated successfully',
+                'data': period.to_json()
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to update enrollment period: {str(e)}'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def delete_enrollment_period(request, period_id):
+    """Delete an enrollment period"""
+    if request.method == 'DELETE':
+        try:
+            # Check if user has admin role
+            if not check_admin_role(request):
+                return JsonResponse({'success': False, 'message': 'Access denied'}, status=403)
+            
+            from student.models import EnrollmentPeriod
+            
+            try:
+                period = EnrollmentPeriod.objects.get(id=period_id)
+            except EnrollmentPeriod.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Enrollment period not found'}, status=404)
+            
+            period.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Enrollment period deleted successfully'
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to delete enrollment period: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
