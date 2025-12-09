@@ -1,0 +1,156 @@
+﻿Rich Picture (Text-Based Version)
+                  +-------------------+
+                   |   Students        |
+                   | - Learning Needs  |
+                   | - Skill Gaps      |
+                   | - Career Goals    |
+                   +---------+---------+
+                             |
+                             v
+                +---------------------------+
+                | AI Personalization Engine |
+                | - Recommends learning     |
+                | - Tracks progress         |
+                | - Generates feedback      |
+                +-------------+-------------+
+                              |
+      +-----------------------+-----------------------+
+      |                       |                       |
+      v                       v                       v
++-------------+     +-----------------+      +-------------------+
+| Assessment  |     | Teacher Dashboard|      | Career Analytics |
+| - Auto eval |     | - Alerts         |      | - Skill insights |
+| - Feedback  |     | - Reports        |      | - Career paths   |
++-------------+     +-----------------+      +-------------------+
+
+
+                 External Factors:
+       -------------------------------------------------
+       | Data privacy | Bias | Infrastructure | Ethics |
+
+
+
+
+
+
+________________
+
+
+Used case diagram
+Actors
+* Student
+
+* Teacher
+
+* Admin
+
+* AI Engine
+
+Subsystems
+   1. Personalized Learning Module
+
+   2. Assessment & Feedback Module
+
+   3. Teacher Analytics Dashboard
+
+   4. Career Support Module
+
+   5. Database & Security Layer
+
+Use Cases
+Student:
+ - View recommended lessons
+ - Take assessments
+ - Receive AI feedback
+ - View skill progress
+ - Get career suggestions
+
+
+Teacher:
+ - Monitor class analytics
+ - Adjust content
+ - View at-risk students
+ - Review assessment insights
+
+
+Admin:
+ - Manage users
+ - Configure system rules
+ - Oversee data governance
+
+
+
+
+Complete Sequence Diagram
+
+
+Student → System UI: Login
+System UI → Database: Verify credentials
+Database → System UI: Auth success
+
+
+Student → Learning Module: Request recommendations
+Learning Module → AI Engine: Analyze student profile
+AI Engine → Database: Fetch history, performance data
+Database → AI Engine: Return student data
+AI Engine → Learning Module: Generate recommendations
+Learning Module → Student: Display personalized learning path
+
+
+
+
+Deployment Diagram
+
+
+                +---------------------------+
+                |        Client Layer       |
+                | (Web App / Mobile App)    |
+                +-------------+-------------+
+                              |
+                              v
+ +---------------------------------------------------------+
+ |                    Application Server                    |
+ |  - Learning Module                                       |
+ |  - Assessment Module                                     |
+ |  - Career Guidance Module                                |
+ |  - Teacher Dashboard                                     |
+ +-------------+-------------------------+------------------+
+               |                         |
+               v                         v
+      +------------------+     +----------------------------+
+      | AI Engine Server |     |   Database Server          |
+      | - ML Models      |     | - Student data             |
+      | - Analytics      |     | - Assessment results       |
+      +------------------+     | - Logs / Security          |
+                               +----------------------------+
+
+
+
+
+
+
+________________
+
+
+Mapping Diagram
+
+
+
+
+           +-------------------------------+
+           |            RQ                 |
+           | AI in education + gaps        |
+           +-------------------------------+
+                    /        |         \
+                   /         |          \
+                  /          |           \
+      +-----------+  +--------------+   +----------------+
+      | Personalized| | AI-based     | | Employability  |
+      | Learning    | | Assessment   | | Skill Support  |
+      +-----------+  +--------------+   +----------------+
+             \             |               /
+              \            |              /
+               \           |             /
+                +----------+------------+
+                |   Learning Analytics  |
+                +-----------------------+

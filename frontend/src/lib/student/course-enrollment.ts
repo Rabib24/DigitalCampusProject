@@ -8,7 +8,11 @@ export interface Course {
   credits: number;
   department: string;
   instructor_id: string;
-  schedule: any;
+  schedule: {
+    days: "MW" | "ST" | "AR";
+    time: string;
+    room: string;
+  };
   available_seats: number;
   total_seats: number;
   description: string;
@@ -100,28 +104,28 @@ async function retryApiCall<T>(
   delay: number = 1000
 ): Promise<T> {
   let lastError: any;
-  
+
   for (let i = 0; i <= maxRetries; i++) {
     try {
       return await apiCall();
     } catch (error) {
       lastError = error;
-      
+
       // If it's not a CourseEnrollmentError or not retryable, throw immediately
       if (!(error instanceof CourseEnrollmentError) || !error.retryable) {
         throw error;
       }
-      
+
       // If we've exhausted retries, throw the error
       if (i === maxRetries) {
         throw error;
       }
-      
+
       // Wait before retrying (exponential backoff)
       await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
     }
   }
-  
+
   throw lastError;
 }
 
@@ -162,32 +166,32 @@ export class CourseEnrollmentService {
       return await retryApiCall(async () => {
         // Build query string
         const queryParams = new URLSearchParams();
-        
+
         if (params.query) {
           queryParams.append('query', params.query);
         }
-        
+
         if (params.department) {
           queryParams.append('department', params.department);
         }
-        
+
         if (params.minCredits !== undefined) {
           queryParams.append('min_credits', params.minCredits.toString());
         }
-        
+
         if (params.maxCredits !== undefined) {
           queryParams.append('max_credits', params.maxCredits.toString());
         }
-        
+
         if (params.sortBy) {
           queryParams.append('sort_by', params.sortBy);
         }
-        
+
         const queryString = queryParams.toString();
-        const url = queryString 
+        const url = queryString
           ? `/student/courses/search/?${queryString}`
           : '/student/courses/search/';
-        
+
         const response = await apiGet(url);
         if (!response.ok) {
           await handleApiError(response, 'search courses');

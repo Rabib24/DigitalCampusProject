@@ -7,6 +7,10 @@ urlpatterns = [
     # Student dashboard endpoint
     path('dashboard/', views.student_dashboard, name='student_dashboard'),
     
+    # Student grades endpoints
+    path('grades/', views.student_grades, name='student_grades'),
+    path('grades/stats/', views.student_grade_stats, name='student_grade_stats'),
+    
     # Student course enrollment endpoints
     path('courses/available/', course_views.get_available_courses, name='get_available_courses'),
     path('courses/search/', course_views.search_courses, name='search_courses'),
@@ -14,7 +18,9 @@ urlpatterns = [
     path('courses/<str:course_id>/enroll/', course_views.enroll_in_course, name='enroll_in_course'),
     path('courses/<str:course_id>/drop/', course_views.drop_course, name='drop_course'),
     path('courses/waitlist/', course_views.get_waitlisted_courses, name='get_waitlisted_courses'),
+    path('courses/', course_views.get_student_courses, name='get_student_courses'),
     path('enrollments/', course_views.get_student_enrollments, name='get_student_enrollments'),
+    path('assignments/', course_views.get_student_assignments, name='get_student_assignments'),
     
     # Student enrollment periods endpoint
     path('enrollment/periods/', course_views.get_student_enrollment_periods, name='get_student_enrollment_periods'),

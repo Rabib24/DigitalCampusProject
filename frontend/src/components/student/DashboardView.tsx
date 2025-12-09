@@ -27,7 +27,7 @@ export function DashboardView() {
         // Fetch actual dashboard data from the backend
         const response = await apiGet('/student/dashboard');
         const data = await response.json();
-        
+
         setDashboardData(data);
       } catch (err) {
         setError("Failed to load dashboard data");
@@ -41,7 +41,7 @@ export function DashboardView() {
   }, []);
 
   const user = getUserData();
-  
+  console.log(user);
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">

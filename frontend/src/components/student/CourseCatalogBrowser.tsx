@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { CourseEnrollmentService, type Course } from "@/lib/student/course-enrollment";
 import { CourseCard } from "./CourseCard";
+import { CourseDetailView } from "./CourseDetailView";
 
 interface CourseCatalogBrowserProps {
   courses: Course[];
@@ -66,7 +67,12 @@ export function CourseCatalogBrowser({ courses, loading, onAddToCart }: CourseCa
         ))}
       </div>
 
-      {/* CourseDetailView will be implemented separately */}
+      <CourseDetailView
+        course={selectedCourse}
+        isOpen={isDetailViewOpen}
+        onClose={() => setIsDetailViewOpen(false)}
+        onAddToCart={onAddToCart}
+      />
     </>
   );
 }

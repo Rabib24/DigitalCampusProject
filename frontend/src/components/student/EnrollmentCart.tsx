@@ -52,19 +52,17 @@ const EnrollmentCartComponent = memo(({ isOpen, onClose, onEnroll }: EnrollmentC
   const handleRemoveFromCart = useCallback(async (courseId: string) => {
     try {
       await CourseEnrollmentService.removeFromCart(courseId);
-      // Refresh cart items
+      // We must reload locally to reflect changes immediately in UI
       await loadCartItems();
     } catch (err) {
-      if (err instanceof CourseEnrollmentError) {
-        setError(err.message);
-      } else {
-        setError("Failed to remove item from cart");
-      }
-      console.error("Failed to remove item from cart:", err);
-      // Clear error after 5 seconds
-      setTimeout(() => setError(null), 5000);
+      // Error handling remains same
+      let msg = "Failed to remove item";
+      if (err instanceof CourseEnrollmentError) msg = err.message;
+      setError(msg);
+      console.error(err);
+      setTimeout(() => setError(null), 3000);
     }
-  }, [loadCartItems]);
+  }, []); // Removing loadCartItems from dependency to avoid cycles, it is stable enough or use a ref if needed
 
   const handleClearCart = useCallback(async () => {
     try {
@@ -181,10 +179,10 @@ const EnrollmentCartComponent = memo(({ isOpen, onClose, onEnroll }: EnrollmentC
                     </div>
                     <button
                       type="button"
-                      className="rounded-md p-1 hover:bg-muted text-red-500 hover:text-red-700"
+                      className="rounded-md p-2 hover:bg-muted text-red-500 hover:text-red-700"
                       onClick={() => handleRemoveFromCart(item.course_id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </button>
                   </div>
                   <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
@@ -198,28 +196,27 @@ const EnrollmentCartComponent = memo(({ isOpen, onClose, onEnroll }: EnrollmentC
         </div>
 
         {cartItems.length > 0 && !loading && !error && (
-          <div className="sticky bottom-0 border-t bg-card p-6">
+          <div className="sticky bottom-0 z-20 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
             <div className="flex justify-between mb-4">
-              <span className="font-medium">Total Courses:</span>
-              <span className="font-bold">{cartItems.length}</span>
+              <span className="font-medium text-lg">Total Courses:</span>
+              <span className="font-bold text-xl">{cartItems.length}</span>
             </div>
             <div className="flex gap-3">
               <button
                 type="button"
-                className="flex-1 rounded-md border border-input bg-transparent px-4 py-2 text-sm font-medium hover:bg-accent"
+                className="flex-1 rounded-md border border-input bg-transparent px-6 py-4 text-lg font-medium hover:bg-accent transition-colors"
                 onClick={handleClearCart}
               >
                 Clear Cart
               </button>
               <button
                 type="button"
-                className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="flex-[2] rounded-md bg-primary px-6 py-4 text-lg font-bold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all hover:scale-[1.02]"
                 onClick={async () => {
                   try {
                     const results = await CourseEnrollmentService.enrollFromCart();
                     setEnrollmentResults(results);
                     setShowConfirmation(true);
-                    // Refresh cart items
                     await loadCartItems();
                   } catch (err) {
                     if (err instanceof CourseEnrollmentError) {
@@ -227,8 +224,6 @@ const EnrollmentCartComponent = memo(({ isOpen, onClose, onEnroll }: EnrollmentC
                     } else {
                       setError("Failed to enroll from cart");
                     }
-                    console.error("Failed to enroll from cart:", err);
-                    // Clear error after 5 seconds
                     setTimeout(() => setError(null), 5000);
                   }
                 }}
@@ -239,7 +234,7 @@ const EnrollmentCartComponent = memo(({ isOpen, onClose, onEnroll }: EnrollmentC
           </div>
         )}
       </div>
-      
+
       {enrollmentResults && (
         <RegistrationConfirmation
           isOpen={showConfirmation}

@@ -491,7 +491,7 @@ class StudentEnrollmentCart(models.Model):
             'course_code': self.course.code,
             'credits': self.course.credits,
             'department': self.course.department,
-            'added_at': added_at_str,
+            'added_date': added_at_str,  # Changed from 'added_at' to 'added_date' to match frontend expectations
         }
     
     def __str__(self):

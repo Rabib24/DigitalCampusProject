@@ -70,7 +70,7 @@ def faculty_login(request):
                 }, status=401)
             
             # Check if account is active
-            if user.status != 'active':
+            if not user.status:
                 return JsonResponse({
                     'success': False,
                     'message': 'Account is not active. Please contact administrator.'

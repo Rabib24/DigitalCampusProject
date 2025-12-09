@@ -17,20 +17,52 @@ def parse_datetime(datetime_str):
     if not datetime_str:
         return None
     
+    # Clean up the datetime string
+    cleaned_str = datetime_str.strip()
+    
+    # Handle various common formats
+    formats_to_try = [
+        '%Y-%m-%dT%H:%M:%S',  # ISO format
+        '%Y-%m-%d %H:%M:%S',  # Standard format
+        '%Y-%m-%d',           # Date only
+        '%m.%d.%Y %H:%M%p',   # User format: 12.9.2025 10.00AM
+        '%m.%d.%Y %H.%M%p',   # User format: 12.9.2025 10.00AM
+        '%m.%d.%Y %H:%M %p',  # With space before AM/PM
+        '%m.%d.%Y %H.%M %p',  # With space before AM/PM
+        '%m/%d/%Y %H:%M%p',   # Alternative with slashes
+        '%m/%d/%Y %H.%M%p',   # Alternative with slashes
+        '%m/%d/%Y %H:%M %p',  # Alternative with slashes and space
+        '%m/%d/%Y %H.%M %p',  # Alternative with slashes and space
+    ]
+    
+    # Try ISO format first
     try:
-        # Try parsing ISO format first
-        if 'T' in datetime_str:
-            return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+        if 'T' in cleaned_str:
+            return datetime.fromisoformat(cleaned_str.replace('Z', '+00:00'))
         else:
             # Try parsing date only format
-            return datetime.fromisoformat(datetime_str)
+            return datetime.fromisoformat(cleaned_str)
     except ValueError:
+        pass
+    
+    # Try other formats
+    for fmt in formats_to_try:
         try:
-            # Try parsing with space separator
-            return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+            # Handle lowercase am/pm
+            test_str = cleaned_str.replace('am', 'AM').replace('pm', 'PM')
+            # Handle case where minutes might be omitted
+            if '%H:%M' in fmt and ':' not in test_str.split()[-1]:
+                # If format expects : but input has ., convert it
+                time_part = test_str.split()[-1]
+                if '.' in time_part and ':' not in time_part:
+                    time_part = time_part.replace('.', ':')
+                    test_str = ' '.join(test_str.split()[:-1] + [time_part])
+            return datetime.strptime(test_str, fmt)
         except ValueError:
-            # Try parsing date only
-            return datetime.strptime(datetime_str, '%Y-%m-%d')
+            continue
+    
+    # If all else fails, raise an exception
+    raise ValueError(f"Unable to parse datetime string: {datetime_str}")
 
 
 @csrf_exempt
@@ -50,11 +82,11 @@ def create_enrollment_period(request):
             
             # Extract required fields
             name = data.get('name')
-            start_date = data.get('start_date')
-            end_date = data.get('end_date')
+            start_date_str = data.get('start_date')
+            end_date_str = data.get('end_date')
             
             # Validate required fields
-            if not name or not start_date or not end_date:
+            if not name or not start_date_str or not end_date_str:
                 return JsonResponse({
                     'success': False, 
                     'message': 'Name, start_date, and end_date are required'
@@ -62,8 +94,8 @@ def create_enrollment_period(request):
             
             # Parse datetime values
             try:
-                parsed_start_date = parse_datetime(start_date)
-                parsed_end_date = parse_datetime(end_date)
+                parsed_start_date = parse_datetime(start_date_str)
+                parsed_end_date = parse_datetime(end_date_str)
                 
                 if not parsed_start_date or not parsed_end_date:
                     return JsonResponse({

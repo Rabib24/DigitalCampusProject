@@ -1,167 +1,155 @@
 "use client";
 
-import { Course } from "@/lib/student/course-enrollment";
-import { BookOpen, Users, CreditCard, Clock, User, Calendar, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { type Course } from "@/lib/student/course-enrollment";
+import { BookOpen, Users, Clock, CreditCard, Calendar, Check, X, MapPin } from "lucide-react";
 
 interface CourseDetailViewProps {
-  course: Course;
+  course: Course | null;
   isOpen: boolean;
   onClose: () => void;
   onAddToCart: (courseId: string) => void;
 }
 
 export function CourseDetailView({ course, isOpen, onClose, onAddToCart }: CourseDetailViewProps) {
-  if (!isOpen) return null;
+  if (!course) return null;
+
+  const isWaitlistOnly = course.available_seats === 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="relative w-full max-w-2xl rounded-lg border bg-card shadow-lg max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-6 py-4">
-          <h3 className="text-xl font-bold">{course.name}</h3>
-          <button
-            type="button"
-            className="rounded-md p-1 hover:bg-muted"
-            onClick={onClose}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm font-medium">
-              <BookOpen className="h-4 w-4" />
-              {course.code}
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm font-medium">
-              <Users className="h-4 w-4" />
-              {course.department}
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm font-medium">
-              <CreditCard className="h-4 w-4" />
-              {course.credits} Credits
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                {course.name}
+              </DialogTitle>
+              <DialogDescription className="mt-1 flex items-center gap-2 text-base">
+                <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground">{course.code}</span>
+                <span>•</span>
+                <span className="text-primary font-medium">{course.credits} Credits</span>
+              </DialogDescription>
             </div>
           </div>
+        </DialogHeader>
 
-          <div>
-            <h4 className="flex items-center gap-2 text-lg font-semibold mb-2">
-              <FileText className="h-5 w-5" />
-              Course Description
-            </h4>
-            <p className="text-muted-foreground bg-muted/50 p-4 rounded-lg">
-              {course.description || "No detailed description available for this course."}
-            </p>
-          </div>
-
+        <div className="space-y-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="rounded-lg border p-4">
-              <h4 className="flex items-center gap-2 font-semibold mb-2">
-                <Clock className="h-4 w-4" />
-                Availability
+            <div className="space-y-3">
+              <h4 className="font-semibold flex items-center gap-2">
+                <Users className="h-4 w-4" /> Instructor & Dept
               </h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    Total Seats
-                  </span>
-                  <span className="font-medium">{course.total_seats}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    Available Seats
-                  </span>
-                  <span className="font-medium">{course.available_seats}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    Currently Enrolled
-                  </span>
-                  <span className="font-medium">{course.total_seats - course.available_seats}</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2.5 mt-2">
-                  <div 
-                    className="bg-primary h-2.5 rounded-full" 
-                    style={{ width: `${((course.total_seats - course.available_seats) / course.total_seats) * 100}%` }}
-                  ></div>
-                </div>
+              <div className="text-sm space-y-1 text-muted-foreground pl-6">
+                <p>Department: <span className="text-foreground">{course.department}</span></p>
+                <p>Instructor ID: <span className="text-foreground">{course.instructor_id}</span></p>
               </div>
             </div>
 
-            <div className="rounded-lg border p-4">
-              <h4 className="flex items-center gap-2 font-semibold mb-2">
-                <Calendar className="h-4 w-4" />
-                Schedule Information
+            <div className="space-y-3">
+              <h4 className="font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4" /> Schedule
               </h4>
-              <div className="text-muted-foreground space-y-2">
+              <div className="text-sm space-y-1 text-muted-foreground pl-6">
                 {course.schedule ? (
-                  <div className="space-y-2">
-                    {typeof course.schedule === 'object' ? (
-                      Object.entries(course.schedule).map(([day, schedule]) => (
-                        <div key={day} className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                          <span className="font-medium capitalize">{day}</span>
-                          <span>{String(schedule)}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p>{String(course.schedule)}</p>
-                    )}
-                  </div>
+                  <>
+                    <p className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3" />
+                      Days: <span className="text-foreground font-medium">{course.schedule.days}</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <Clock className="h-3 w-3" />
+                      Time: <span className="text-foreground font-medium">{course.schedule.time}</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <MapPin className="h-3 w-3" />
+                      Room: <span className="text-foreground font-medium">{course.schedule.room}</span>
+                    </p>
+                  </>
                 ) : (
-                  <p>Schedule information not available</p>
+                  <p>Check syllabus for schedule</p>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border p-4">
-            <h4 className="font-semibold mb-2">Enrollment Status</h4>
-            <div className="flex items-center gap-4">
-              {course.available_seats > 0 ? (
-                <span className="inline-flex items-center rounded-full bg-green-500/10 px-3 py-1 text-sm font-medium text-green-500">
-                  Open for Enrollment ({course.available_seats} seats available)
-                </span>
-              ) : (
-                <span className="inline-flex items-center rounded-full bg-yellow-500/10 px-3 py-1 text-sm font-medium text-yellow-500">
-                  Waitlist Only ({course.total_seats - course.available_seats} students enrolled)
-                </span>
-              )}
-            </div>
+          <Separator />
+
+          <div className="space-y-3">
+            <h4 className="font-semibold flex items-center gap-2">
+              <BookOpen className="h-4 w-4" /> Description
+            </h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {course.description || "No description available."}
+            </p>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              className="flex-1 rounded-md border border-input bg-transparent px-4 py-2 text-sm font-medium hover:bg-accent"
-              onClick={onClose}
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              onClick={() => {
-                onAddToCart(course.id);
-                onClose();
-              }}
-              disabled={course.available_seats === 0}
-            >
-              {course.available_seats > 0 ? "Add to Cart" : "Join Waitlist"}
-            </button>
+          <Separator />
+
+          <div className="space-y-3">
+            <h4 className="font-semibold flex items-center gap-2">
+              Prerequisites
+            </h4>
+            {course.prerequisites && course.prerequisites.length > 0 ? (
+              <div className="space-y-2">
+                {course.prerequisites.map((prereq, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                    <span className="font-mono text-sm">{prereq}</span>
+                    {course.prereqs_met ? (
+                      <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">
+                        <Check className="h-3 w-3 mr-1" /> Met
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-red-500 text-red-600 bg-red-50">
+                        <X className="h-3 w-3 mr-1" /> Missing
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">No prerequisites required.</p>
+            )}
+          </div>
+
+          <div className="p-4 rounded-lg bg-accent/20 border border-accent">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium">Seat Availability</span>
+              <span className="text-sm font-bold">
+                {course.available_seats} / {course.total_seats}
+              </span>
+            </div>
+            <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${course.available_seats < 5 ? 'bg-red-500' : 'bg-green-500'}`}
+                style={{ width: `${(course.available_seats / course.total_seats) * 100}%` }}
+              ></div>
+            </div>
+            {isWaitlistOnly && (
+              <p className="text-xs text-amber-600 mt-2 font-medium flex items-center gap-1">
+                <Clock className="h-3 w-3" /> Class is full. You will be added to the waitlist.
+              </p>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button
+            onClick={() => {
+              onAddToCart(course.id);
+              onClose();
+            }}
+            disabled={isWaitlistOnly && !course.available_seats} // Enable waitlist logic later if needed
+            className={isWaitlistOnly ? "bg-amber-600 hover:bg-amber-700" : ""}
+          >
+            {isWaitlistOnly ? "Join Waitlist" : "Add to Cart"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

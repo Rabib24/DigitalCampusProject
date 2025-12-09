@@ -218,7 +218,6 @@ AUTH_USER_MODEL = 'users.User'
 # CORS configuration for local frontend on http://localhost:3000
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-    'http://localhost:3001',
 ]
 
 CORS_ALLOW_CREDENTIALS = True

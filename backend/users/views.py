@@ -35,6 +35,24 @@ def login_view(request):
                 except User.DoesNotExist:
                     pass
             
+            # DEBUG LOGGING
+            print(f"DEBUG: Login attempt for identifier: '{identifier}'")
+            if user:
+                print(f"DEBUG: User found: {user.username} (ID: {user.id})")
+                print(f"DEBUG: User status: '{user.status}'")
+                print(f"DEBUG: Django is_active: {user.is_active}")
+                
+                is_password_valid = check_password(password, user.password)
+                print(f"DEBUG: Password valid: {is_password_valid}")
+                
+                if not is_password_valid:
+                    print("DEBUGGING TIP: Check if you are using the correct password. Hashes might differ.")
+                
+                if user.status != 'active':
+                    print(f"DEBUG: Login blocked due to inactive status '{user.status}'")
+            else:
+                print("DEBUG: User NOT found in database")
+            
             # If user found, check password and ensure user is active
             if user and check_password(password, user.password) and user.status == 'active':
                 # Generate JWT token
@@ -99,7 +117,8 @@ def login_view(request):
             elif user and user.status != 'active':
                 return JsonResponse({
                     'success': False,
-                    'message': 'Account is not active. Please contact administrator.'
+                    'message': f'Account is not active. Status: {user.status if user else "UNKNOWN"}',
+                    'debug_status': user.status if user else None
                 }, status=403)
             else:
                 return JsonResponse({
@@ -108,9 +127,11 @@ def login_view(request):
                 }, status=401)
                 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return JsonResponse({
                 'success': False,
-                'message': 'Login failed'
+                'message': f'Login failed: {str(e)}'
             }, status=500)
     
     return JsonResponse({

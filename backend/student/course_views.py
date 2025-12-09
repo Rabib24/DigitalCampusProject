@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from courses.models import Course, Enrollment, Section
+from assignments.models import Assignment, Submission, Grade
 from users.models import User, Student
 from .models import EnrollmentPeriod  # Add this import
 from django.conf import settings
@@ -71,6 +72,9 @@ def get_available_courses(request):
                 enrolled_count = course.get_student_count()
                 available_seats = course.enrollment_limit - enrolled_count
                 
+                # Format schedule data for frontend
+                formatted_schedule = format_schedule_for_frontend(course.schedule)
+                
                 courses_data.append({
                     'id': course.id,
                     'code': course.code,
@@ -78,7 +82,7 @@ def get_available_courses(request):
                     'credits': course.credits,
                     'department': course.department,
                     'instructor_id': course.instructor_id,
-                    'schedule': course.schedule,
+                    'schedule': formatted_schedule,
                     'available_seats': available_seats,
                     'total_seats': course.enrollment_limit,
                     'description': course.description
@@ -178,6 +182,9 @@ def search_courses(request):
                 enrolled_count = course.get_student_count()
                 available_seats = course.enrollment_limit - enrolled_count
                 
+                # Format schedule data for frontend
+                formatted_schedule = format_schedule_for_frontend(course.schedule)
+                
                 courses_data.append({
                     'id': course.id,
                     'code': course.code,
@@ -185,7 +192,7 @@ def search_courses(request):
                     'credits': course.credits,
                     'department': course.department,
                     'instructor_id': course.instructor_id,
-                    'schedule': course.schedule,
+                    'schedule': formatted_schedule,
                     'available_seats': available_seats,
                     'total_seats': course.enrollment_limit,
                     'description': course.description
@@ -304,6 +311,9 @@ def get_recommended_courses_view(request):
                 prereq_rels = CoursePrerequisite.objects.filter(course=course, is_corequisite=False)
                 prereq_codes = [prereq_rel.prerequisite_course.code for prereq_rel in prereq_rels]
                 
+                # Format schedule data for frontend
+                formatted_schedule = format_schedule_for_frontend(course.schedule)
+                
                 courses.append({
                     'id': course.id,
                     'code': course.code,
@@ -313,6 +323,7 @@ def get_recommended_courses_view(request):
                     'description': course.description,
                     'prerequisites': prereq_codes,
                     'prereqs_met': rec['prereqs_met'],
+                    'schedule': formatted_schedule,
                     'available_seats': course.enrollment_limit - (course.students.count() if course.students else 0) if course.students else course.enrollment_limit,
                     'total_seats': course.enrollment_limit
                 })
@@ -1273,6 +1284,12 @@ def remove_from_cart(request, course_id):
             return JsonResponse({'success': False, 'message': error}, status=401)
         
         try:
+            # Get the course object
+            try:
+                course = Course.objects.get(id=course_id)
+            except Course.DoesNotExist:
+                return JsonResponse({'success': False, 'message': 'Course not found'}, status=404)
+            
             # Remove from cart in database
             success, message = remove_from_cart_db(student, course_id)
             if not success:
@@ -1281,8 +1298,8 @@ def remove_from_cart(request, course_id):
             # Log the remove from cart action
             EnrollmentAuditLogger.log_remove_from_cart(
                 student=student,
-                request=request,
-                course_id=course_id
+                course=course,
+                request=request
             )
             
             return JsonResponse({
@@ -1586,6 +1603,163 @@ def enroll_from_cart(request):
 
 
 @csrf_exempt
+def get_student_assignments(request):
+    """Get all assignments for student's enrolled courses"""
+    if request.method == 'GET':
+        # Authenticate student
+        student, error = get_authenticated_student(request)
+        if not student:
+            return JsonResponse({'success': False, 'message': error}, status=401)
+        
+        try:
+            # Get student's active enrollments
+            enrollments = Enrollment.objects.filter(
+                student_id=student.student_id,
+                status='active'
+            )
+            
+            # Get course IDs
+            course_ids = [enrollment.course_id for enrollment in enrollments]
+            
+            # Get assignments for these courses
+            assignments = Assignment.objects.filter(course_id__in=course_ids)
+            
+            # Convert to JSON format with additional fields for frontend
+            assignments_data = []
+            for assignment in assignments:
+                assignment_data = assignment.to_json()
+                
+                # Add course code
+                try:
+                    course = Course.objects.get(id=assignment.course_id)
+                    assignment_data['course'] = course.code
+                except Course.DoesNotExist:
+                    assignment_data['course'] = 'Unknown'
+                
+                # Add submission status
+                try:
+                    submission = Submission.objects.filter(
+                        assignment_id=assignment.id,
+                        student_id=student.student_id
+                    ).first()
+                    
+                    if submission:
+                        assignment_data['status'] = 'submitted'
+                        assignment_data['submittedDate'] = submission.submitted_at.isoformat() if submission.submitted_at else None
+                        
+                        # Get grade if exists
+                        grade = Grade.objects.filter(
+                            assignment_id=assignment.id,
+                            student_id=student.student_id
+                        ).first()
+                        
+                        if grade and grade.value is not None:
+                            assignment_data['grade'] = float(str(grade.value))
+                            assignment_data['feedback'] = grade.feedback
+                    else:
+                        assignment_data['status'] = 'pending'
+                except Exception:
+                    assignment_data['status'] = 'pending'
+                
+                # Map due_date to dueDate for UI
+                if 'due_date' in assignment_data:
+                    assignment_data['dueDate'] = assignment_data['due_date']
+                
+                # Add priority based on due date
+                from django.utils import timezone
+                from datetime import timedelta
+                if 'due_date' in assignment_data and assignment_data['due_date']:
+                    try:
+                        due_date = timezone.datetime.fromisoformat(assignment_data['due_date'].replace('Z', '+00:00'))
+                        days_until_due = (due_date - timezone.now()).days
+                        if days_until_due <= 3:
+                            assignment_data['priority'] = 'high'
+                        elif days_until_due <= 7:
+                            assignment_data['priority'] = 'medium'
+                        else:
+                            assignment_data['priority'] = 'low'
+                    except:
+                        assignment_data['priority'] = 'medium'
+                else:
+                    assignment_data['priority'] = 'medium'
+                
+                assignments_data.append(assignment_data)
+            
+            return JsonResponse(assignments_data, safe=False)
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to fetch assignments: {str(e)}'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def get_student_courses(request):
+    """Get all student's courses"""
+    if request.method == 'GET':
+        # Authenticate student
+        student, error = get_authenticated_student(request)
+        if not student:
+            return JsonResponse({'success': False, 'message': error}, status=401)
+        
+        try:
+            # Get student's active enrollments
+            enrollments = Enrollment.objects.filter(
+                student_id=student.student_id,
+                status='active'
+            )
+            
+            # Get courses data
+            courses_data = []
+            for enrollment in enrollments:
+                try:
+                    # Get course details
+                    course = Course.objects.get(id=enrollment.course_id)
+                    
+                    # Format schedule data
+                    formatted_schedule = format_schedule_for_frontend(course.schedule)
+                    
+                    # Get assignments for this course
+                    assignments = Assignment.objects.filter(course_id=course.id)
+                    
+                    # Count submitted assignments
+                    submitted_count = 0
+                    for assignment in assignments:
+                        submission = Submission.objects.filter(
+                            assignment_id=assignment.id,
+                            student_id=student.student_id
+                        ).first()
+                        if submission:
+                            submitted_count += 1
+                    
+                    course_data = {
+                        'id': course.id,
+                        'code': course.code,
+                        'name': course.name,
+                        'credits': course.credits,
+                        'department': course.department,
+                        'schedule': formatted_schedule,
+                        'description': course.description,
+                        'instructor_id': course.instructor_id,
+                        'assignments': {
+                            'total': assignments.count(),
+                            'submitted': submitted_count
+                        }
+                    }
+                    courses_data.append(course_data)
+                except Course.DoesNotExist:
+                    # Skip courses that don't exist
+                    pass
+            
+            return JsonResponse(courses_data, safe=False)
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Failed to fetch courses: {str(e)}'}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
 def get_student_enrollment_periods(request):
     """Get all active enrollment periods for students"""
     if request.method == 'GET':
@@ -1609,3 +1783,89 @@ def get_student_enrollment_periods(request):
             return JsonResponse({'success': False, 'message': f'Failed to fetch enrollment periods: {str(e)}'}, status=500)
     
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+def format_schedule_for_frontend(schedule_data):
+    """Format schedule data to match frontend expectations"""
+    if not schedule_data:
+        return None
+    
+    try:
+        # If schedule_data is a JSON string, parse it
+        if isinstance(schedule_data, str):
+            import json
+            try:
+                schedule_data = json.loads(schedule_data)
+            except json.JSONDecodeError:
+                # If parsing fails, return as-is
+                return {
+                    'days': '',
+                    'time': schedule_data,
+                    'room': ''
+                }
+        
+        # If schedule_data is a list of schedule entries
+        if isinstance(schedule_data, list) and len(schedule_data) > 0:
+            # Process all schedule entries and combine them
+            days_list = []
+            times_list = []
+            rooms_list = []
+            
+            # Create day abbreviations mapping
+            day_mapping = {
+                'Monday': 'M',
+                'Tuesday': 'T',
+                'Wednesday': 'W',
+                'Thursday': 'R',
+                'Friday': 'F',
+                'Saturday': 'S',
+                'Sunday': 'U'
+            }
+            
+            # Process each schedule entry
+            for entry in schedule_data:
+                # Get day abbreviation
+                day = entry.get('day', '')
+                if day in day_mapping:
+                    days_list.append(day_mapping[day])
+                elif day:
+                    days_list.append(day[:1].upper())  # First letter capitalized
+                
+                # Get time range
+                start_time = entry.get('start_time', '')
+                end_time = entry.get('end_time', '')
+                if start_time and end_time:
+                    times_list.append(f"{start_time} - {end_time}")
+                
+                # Get location
+                location = entry.get('location', '')
+                if location:
+                    rooms_list.append(location)
+            
+            # Combine all information
+            days_combined = ''.join(sorted(set(days_list))) if days_list else ''
+            times_combined = ', '.join(sorted(set(times_list))) if times_list else ''
+            rooms_combined = ', '.join(sorted(set(rooms_list))) if rooms_list else ''
+            
+            # Apply special abbreviations for common patterns
+            day_abbr = days_combined
+            if 'M' in days_combined and 'W' in days_combined and len(days_combined) == 2:
+                day_abbr = 'MW'
+            elif 'T' in days_combined and 'R' in days_combined and len(days_combined) == 2:
+                day_abbr = 'ST'
+            elif 'F' in days_combined and len(days_combined) == 1:
+                day_abbr = 'AR'
+            
+            return {
+                'days': day_abbr,
+                'time': times_combined,
+                'room': rooms_combined
+            }
+        # If schedule_data is already in the correct format
+        elif isinstance(schedule_data, dict) and 'days' in schedule_data:
+            return schedule_data
+        else:
+            return None
+    except Exception as e:
+        # If any error occurs, return None to avoid breaking the frontend
+        return None

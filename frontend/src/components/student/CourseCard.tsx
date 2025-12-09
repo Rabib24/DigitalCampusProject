@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { type Course } from "@/lib/student/course-enrollment";
-import { BookOpen, Users, Clock, CreditCard, Check, X } from "lucide-react";
+import { BookOpen, Users, Clock, CreditCard, Check, X, Calendar, MapPin } from "lucide-react";
 
 interface CourseCardProps {
   course: Course;
@@ -43,18 +43,38 @@ function CourseCardComponent({ course, onAddToCart, onViewDetails }: CourseCardP
               {course.credits} Credits
             </span>
             <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-500">
-              <Clock className="h-3 w-3 mr-1" />
+              <Users className="h-3 w-3 mr-1" />
               {course.total_seats - course.available_seats}/{course.total_seats} Enrolled
             </span>
           </div>
         </div>
       </div>
 
+      {course.schedule && (
+        <div className="px-4 pb-2">
+          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground bg-muted/30 p-2 rounded-md">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span className="font-semibold">{course.schedule.days}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>{course.schedule.time}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              {/* MapPin is used for Room */}
+              <MapPin className="h-3 w-3" />
+              <span className="font-medium">Room: {course.schedule.room}</span>
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="px-4 pb-4 space-y-3">
         <div className="text-sm text-muted-foreground line-clamp-2">
           {course.description || "No description available for this course."}
         </div>
-        
+
         {/* Prerequisites indicator for recommended courses */}
         {course.prerequisites && course.prerequisites.length > 0 && (
           <div className="flex items-center gap-1 text-xs">
