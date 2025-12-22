@@ -139,15 +139,19 @@ export default function StudentDashboardPage() {
         <StudentTopNav />
 
         <div className="flex gap-0 md:gap-4 p-0 md:p-4">
-          {/* Sidebar */}
+          {/* Sidebar with mobile menu */}
           <StudentSidebar
             items={studentNavItems}
             activeId={activeView}
             onSelect={(id) => setActiveView(id as StudentView)}
           />
 
-          {/* Main Content */}
-          <main className="flex-1 min-h-[calc(100vh-80px)]">{renderView()}</main>
+          {/* Main Content with responsive padding for mobile menu button */}
+          <main className="flex-1 min-h-[calc(100vh-80px)] w-full md:w-auto">
+            <div className="w-full">
+              {renderView()}
+            </div>
+          </main>
         </div>
       </div>
     </ProtectedRoute>

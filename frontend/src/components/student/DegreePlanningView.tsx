@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { apiGet } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -34,51 +35,45 @@ type CourseRequirement = {
 };
 
 export function DegreePlanningView() {
-  const [requirements, setRequirements] = useState<DegreeRequirement[]>([
-    {
-      id: "1",
-      name: "Core Computer Science",
-      creditsRequired: 45,
-      creditsCompleted: 30,
-      courses: [
-        { id: "1", code: "CS-101", name: "Intro to Programming", credits: 3, status: "completed" },
-        { id: "2", code: "CS-102", name: "Data Structures", credits: 3, status: "completed" },
-        { id: "3", code: "CS-201", name: "Algorithms", credits: 3, status: "completed" },
-        { id: "4", code: "CS-203", name: "Database Systems", credits: 3, status: "in-progress" },
-        { id: "5", code: "CS-301", name: "Operating Systems", credits: 3, status: "planned", semester: "Fall 2025" },
-        { id: "6", code: "CS-302", name: "Software Engineering", credits: 3, status: "available" },
-        { id: "7", code: "CS-401", name: "Senior Project", credits: 3, status: "available" },
-      ]
-    },
-    {
-      id: "2",
-      name: "Mathematics",
-      creditsRequired: 18,
-      creditsCompleted: 12,
-      courses: [
-        { id: "8", code: "MA-101", name: "Calculus I", credits: 3, status: "completed" },
-        { id: "9", code: "MA-102", name: "Calculus II", credits: 3, status: "completed" },
-        { id: "10", code: "MA-201", name: "Linear Algebra", credits: 3, status: "completed" },
-        { id: "11", code: "MA-301", name: "Statistics", credits: 3, status: "in-progress" },
-        { id: "12", code: "MA-401", name: "Discrete Math", credits: 3, status: "available" },
-      ]
-    },
-    {
-      id: "3",
-      name: "General Education",
-      creditsRequired: 30,
-      creditsCompleted: 21,
-      courses: [
-        { id: "13", code: "EN-101", name: "English Composition", credits: 3, status: "completed" },
-        { id: "14", code: "EN-102", name: "Literature", credits: 3, status: "completed" },
-        { id: "15", code: "HI-101", name: "World History", credits: 3, status: "completed" },
-        { id: "16", code: "SC-101", name: "Biology", credits: 3, status: "completed" },
-        { id: "17", code: "SC-102", name: "Chemistry", credits: 3, status: "completed" },
-        { id: "18", code: "AR-101", name: "Art Appreciation", credits: 3, status: "completed" },
-        { id: "19", code: "PH-101", name: "Philosophy", credits: 3, status: "in-progress" },
-      ]
-    }
-  ]);
+  const [requirements, setRequirements] = useState<DegreeRequirement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [degreeInfo, setDegreeInfo] = useState<{
+    major: string;
+    totalCredits: number;
+    completedCredits: number;
+    remainingCredits: number;
+    progressPercentage: number;
+    semestersRemaining: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchDegreePlanning = async () => {
+      try {
+        setLoading(true);
+        const response = await apiGet('/student/degree-planning');
+        const data = await response.json();
+        
+        setDegreeInfo({
+          major: data.major,
+          totalCredits: data.totalCredits,
+          completedCredits: data.completedCredits,
+          remainingCredits: data.remainingCredits,
+          progressPercentage: data.progressPercentage,
+          semestersRemaining: data.semestersRemaining
+        });
+        
+        setRequirements(data.requirements || []);
+      } catch (err) {
+        setError("Failed to load degree planning data");
+        console.error("Degree planning fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDegreePlanning();
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -106,56 +101,88 @@ export function DegreePlanningView() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <div className="text-lg">Loading degree planning data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <div className="text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div>
         <h2 className="text-3xl font-bold text-foreground">Degree Planning</h2>
-        <p className="text-muted-foreground mt-1">Track your progress toward graduation</p>
+        <p className="text-muted-foreground mt-1">
+          {degreeInfo ? `${degreeInfo.major} - Track your progress toward graduation` : 'Track your progress toward graduation'}
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          {requirements.map((req) => (
-            <Card key={req.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{req.name}</span>
-                  <span className="text-sm font-normal">
-                    {req.creditsCompleted}/{req.creditsRequired} credits
-                  </span>
-                </CardTitle>
-                <CardDescription>
-                  <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                    <div 
-                      className="bg-primary h-2 rounded-full" 
-                      style={{ width: `${(req.creditsCompleted / req.creditsRequired) * 100}%` }}
-                    ></div>
-                  </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {req.courses.map((course) => (
-                    <div key={course.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex items-center gap-3">
-                        {getStatusIcon(course.status)}
-                        <div>
-                          <div className="font-medium">{course.code} - {course.name}</div>
-                          <div className="text-sm text-muted-foreground">{course.credits} credits</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {course.semester && (
-                          <span className="text-sm text-muted-foreground">{course.semester}</span>
-                        )}
-                        {getStatusBadge(course.status)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {requirements.length === 0 ? (
+            <Card>
+              <CardContent className="flex items-center justify-center py-8">
+                <div className="text-muted-foreground">No degree requirements found</div>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            requirements.map((req) => (
+              <Card key={req.id}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>{req.name}</span>
+                    <span className="text-sm font-normal">
+                      {req.creditsCompleted}/{req.creditsRequired} credits
+                    </span>
+                  </CardTitle>
+                  <CardDescription>
+                    <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                      <div 
+                        className="bg-primary h-2 rounded-full" 
+                        style={{ width: `${req.creditsRequired > 0 ? (req.creditsCompleted / req.creditsRequired) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {req.courses.length === 0 ? (
+                      <div className="text-sm text-muted-foreground text-center py-4">
+                        No courses in this category yet
+                      </div>
+                    ) : (
+                      req.courses.map((course) => (
+                        <div key={course.id} className="flex items-center justify-between p-3 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            {getStatusIcon(course.status)}
+                            <div>
+                              <div className="font-medium">{course.code} - {course.name}</div>
+                              <div className="text-sm text-muted-foreground">{course.credits} credits</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {course.semester && (
+                              <span className="text-sm text-muted-foreground">{course.semester}</span>
+                            )}
+                            {getStatusBadge(course.status)}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         <div className="space-y-6">
@@ -170,21 +197,29 @@ export function DegreePlanningView() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Total Credits:</span>
-                  <span className="font-medium">63/93</span>
+                  <span className="font-medium">
+                    {degreeInfo ? `${degreeInfo.completedCredits}/${degreeInfo.totalCredits}` : 'N/A'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>GPA:</span>
-                  <span className="font-medium">3.45</span>
+                  <span>Remaining:</span>
+                  <span className="font-medium">
+                    {degreeInfo ? `${degreeInfo.remainingCredits} credits` : 'N/A'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Projected Graduation:</span>
-                  <span className="font-medium">Dec 2025</span>
+                  <span>Progress:</span>
+                  <span className="font-medium">
+                    {degreeInfo ? `${degreeInfo.progressPercentage}%` : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Est. Graduation:</span>
+                  <span className="font-medium">
+                    {degreeInfo ? `${degreeInfo.semestersRemaining} semester${degreeInfo.semestersRemaining !== 1 ? 's' : ''}` : 'N/A'}
+                  </span>
                 </div>
               </div>
-              <Button className="w-full">
-                <Edit className="h-4 w-4 mr-2" />
-                Update Plan
-              </Button>
             </CardContent>
           </Card>
 
@@ -192,21 +227,12 @@ export function DegreePlanningView() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="h-5 w-5" />
-                Recommendations
+                Degree Requirements
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="p-3 rounded-lg border">
-                <div className="font-medium">Consider taking MA-401 next semester</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Required for your concentration in Data Science
-                </div>
-              </div>
-              <div className="p-3 rounded-lg border">
-                <div className="font-medium">CS-302 opens in Spring 2026</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Prerequisites will be met by then
-                </div>
+              <div className="text-sm text-muted-foreground">
+                Complete all required courses in each category to graduate. Courses marked as "In Progress" will contribute to your degree upon completion.
               </div>
             </CardContent>
           </Card>

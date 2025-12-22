@@ -28,6 +28,9 @@ cryptography>=41.0.0
 # Search
 typesense>=0.15.0
 
+# Caching & Session Management
+redis>=5.0.0
+
 # Monitoring & Logging
 prometheus-client>=0.19.0
 sentry-sdk>=1.40.0

@@ -1,0 +1,11 @@
+graph LR
+    A((Start)) --> B((Requirements))
+    B --> C((Design))
+    C --> D((Frontend))
+    C --> E((Backend))
+    D --> F((Integration))
+    E --> F
+    F --> G((Testing))
+    G --> H((End))
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style H fill:#f9f,stroke:#333,stroke-width:2px

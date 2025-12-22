@@ -14,9 +14,18 @@ interface DashboardData {
   attendanceRate: number;
 }
 
+interface EnrolledCourse {
+  id: string;
+  code: string;
+  name: string;
+  progress?: number;
+}
+
 export function DashboardView() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coursesLoading, setCoursesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -38,6 +47,34 @@ export function DashboardView() {
     };
 
     fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      try {
+        setCoursesLoading(true);
+        // Fetch enrolled courses from the backend
+        const response = await apiGet('/student/courses');
+        const data = await response.json();
+        
+        // Take only first 5 courses for dashboard display
+        const coursesToShow = data.slice(0, 5).map((course: any) => ({
+          id: course.id,
+          code: course.code,
+          name: course.name,
+          progress: course.progress || 0,
+        }));
+        
+        setEnrolledCourses(coursesToShow);
+      } catch (err) {
+        console.error("Enrolled courses fetch error:", err);
+        // Don't set error state here, let dashboard still load
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+
+    fetchEnrolledCourses();
   }, []);
 
   const user = getUserData();
@@ -205,34 +242,42 @@ export function DashboardView() {
       <div className="rounded-lg border bg-card">
         <div className="border-b px-4 pt-4 pb-2">
           <h3 className="text-base font-semibold">Enrolled Courses (This Semester)</h3>
-          <p className="text-xs text-muted-foreground">You are enrolled in 5 courses</p>
+          <p className="text-xs text-muted-foreground">
+            {coursesLoading ? "Loading..." : `You are enrolled in ${enrolledCourses.length} course${enrolledCourses.length !== 1 ? 's' : ''}`}
+          </p>
         </div>
         <div className="px-4 py-4">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-            {[
-              { code: "CS-101", name: "Introduction to Programming", progress: 75, id: "1" },
-              { code: "MA-201", name: "Calculus II", progress: 60, id: "2" },
-              { code: "PH-102", name: "Physics II", progress: 85, id: "3" },
-              { code: "EN-101", name: "English Composition", progress: 40, id: "4" },
-              { code: "CS-203", name: "Data Structures", progress: 20, id: "5" },
-            ].map((course) => (
-              <button
-                key={course.code}
-                type="button"
-                className="rounded-lg border border-border p-3 text-left hover:bg-accent/5 transition-colors"
-                onClick={() => router.push(`/student/course-${course.id}`)}
-              >
-                <h4 className="font-semibold text-sm">{course.code}</h4>
-                <p className="text-xs text-muted-foreground mt-1">{course.name}</p>
-                <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${course.progress}%` }}
-                  />
-                </div>
-              </button>
-            ))}
-          </div>
+          {coursesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-sm text-muted-foreground">Loading courses...</div>
+            </div>
+          ) : enrolledCourses.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-sm text-muted-foreground">No courses enrolled</div>
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+              {enrolledCourses.map((course) => (
+                <button
+                  key={course.id}
+                  type="button"
+                  className="rounded-lg border border-border p-3 text-left hover:bg-accent/5 transition-colors"
+                  onClick={() => router.push(`/student?view=courses`)}
+                >
+                  <h4 className="font-semibold text-sm">{course.code}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">{course.name}</p>
+                  {course.progress !== undefined && course.progress > 0 && (
+                    <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all"
+                        style={{ width: `${course.progress}%` }}
+                      />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

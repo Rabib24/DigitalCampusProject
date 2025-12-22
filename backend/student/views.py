@@ -5,6 +5,7 @@ from courses.models import Enrollment, Course
 from assignments.models import Grade
 from django.db.models import Sum
 from django.utils import timezone
+import json
 
 
 @csrf_exempt
@@ -240,4 +241,201 @@ def student_grade_stats(request):
                 'message': f'Failed to fetch grade stats: {str(e)}'
             }, status=500)
     
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def degree_planning(request):
+    """Get student's degree planning data with real completion status"""
+    if request.method == 'GET':
+        # Authenticate student
+        student, error = get_authenticated_student(request)
+        if not student:
+            return JsonResponse({'success': False, 'message': error}, status=401)
+        
+        try:
+            # Define degree requirements based on student's department
+            DEGREE_REQUIREMENTS = {
+                'Computer Science & Engineering': {
+                    'total_credits': 120,
+                    'categories': {
+                        'Core Computer Science': {
+                            'credits_required': 45,
+                            'course_codes': ['CSE101', 'CSE102', 'CSE201', 'CSE202', 'CSE301', 'CSE302', 'CSE401', 'CSE402']
+                        },
+                        'Mathematics': {
+                            'credits_required': 18,
+                            'course_codes': ['MA-101', 'MA-102', 'MA-201', 'MA-301', 'MA-401']
+                        },
+                        'General Education': {
+                            'credits_required': 30,
+                            'course_codes': ['ENG101', 'ENG102', 'SOC101', 'PHI101', 'HIS101']
+                        },
+                        'Electives': {
+                            'credits_required': 27,
+                            'course_codes': []
+                        }
+                    }
+                },
+                'Business Administration': {
+                    'total_credits': 120,
+                    'categories': {
+                        'Core Business': {
+                            'credits_required': 45,
+                            'course_codes': ['BUS101', 'BUS102', 'BUS201', 'BUS301', 'BUS401']
+                        },
+                        'Mathematics': {
+                            'credits_required': 12,
+                            'course_codes': ['MA-101', 'MA-102', 'MA-201']
+                        },
+                        'General Education': {
+                            'credits_required': 30,
+                            'course_codes': ['ENG101', 'ENG102', 'SOC101', 'ECO101']
+                        },
+                        'Electives': {
+                            'credits_required': 33,
+                            'course_codes': []
+                        }
+                    }
+                },
+                'Microbiology': {
+                    'total_credits': 120,
+                    'categories': {
+                        'Core Microbiology': {
+                            'credits_required': 45,
+                            'course_codes': ['BIO101', 'BIO102', 'BIO201', 'BIO301', 'CHE101']
+                        },
+                        'Laboratory Sciences': {
+                            'credits_required': 18,
+                            'course_codes': ['LAB101', 'LAB201', 'LAB301']
+                        },
+                        'General Education': {
+                            'credits_required': 30,
+                            'course_codes': ['ENG101', 'ENG102', 'MA-101']
+                        },
+                        'Electives': {
+                            'credits_required': 27,
+                            'course_codes': []
+                        }
+                    }
+                }
+            }
+            
+            # Get student's department (major)
+            student_major = student.department if student.department else 'General Studies'
+            
+            # Get requirements for student's major (default to General Studies if not found)
+            requirements = DEGREE_REQUIREMENTS.get(student_major, {
+                'total_credits': 120,
+                'categories': {
+                    'General Education': {
+                        'credits_required': 120,
+                        'course_codes': []
+                    }
+                }
+            })
+            
+            # Get all student's enrollments
+            all_enrollments = Enrollment.objects.filter(student_id=student.student_id)
+            
+            # Build degree progress data
+            degree_data = []
+            total_completed_credits = 0
+            
+            for category_name, category_info in requirements['categories'].items():
+                credits_required = category_info['credits_required']
+                required_course_codes = category_info['course_codes']
+                
+                category_courses = []
+                credits_completed = 0
+                
+                # Get courses for this category
+                for enrollment in all_enrollments:
+                    try:
+                        course = Course.objects.get(id=enrollment.course_id)
+                        
+                        # Check if course belongs to this category
+                        is_category_course = False
+                        if required_course_codes:
+                            # Match by course code
+                            for req_code in required_course_codes:
+                                if req_code.replace('-', '').lower() in course.code.replace('-', '').lower():
+                                    is_category_course = True
+                                    break
+                        else:
+                            # Electives category - courses not in other categories
+                            is_category_course = True
+                            for other_cat_info in requirements['categories'].values():
+                                if other_cat_info == category_info:
+                                    continue
+                                for other_code in other_cat_info.get('course_codes', []):
+                                    if other_code.replace('-', '').lower() in course.code.replace('-', '').lower():
+                                        is_category_course = False
+                                        break
+                                if not is_category_course:
+                                    break
+                        
+                        if is_category_course:
+                            # Determine course status
+                            status = 'available'
+                            semester = None
+                            
+                            if enrollment.status == 'completed':
+                                status = 'completed'
+                                credits_completed += course.credits
+                                total_completed_credits += course.credits
+                            elif enrollment.status == 'active':
+                                status = 'in-progress'
+                                semester = 'Current Semester'
+                            elif enrollment.status == 'dropped':
+                                status = 'available'
+                            
+                            course_data = {
+                                'id': str(course.id),
+                                'code': course.code,
+                                'name': course.name,
+                                'credits': course.credits,
+                                'status': status,
+                                'semester': semester
+                            }
+                            category_courses.append(course_data)
+                    
+                    except Course.DoesNotExist:
+                        pass
+                
+                degree_data.append({
+                    'id': str(len(degree_data) + 1),
+                    'name': category_name,
+                    'creditsRequired': credits_required,
+                    'creditsCompleted': credits_completed,
+                    'courses': category_courses
+                })
+            
+            # Calculate overall progress
+            total_credits_required = requirements.get('total_credits', 120)
+            progress_percentage = int((total_completed_credits / total_credits_required) * 100) if total_credits_required > 0 else 0
+            
+            # Calculate projected graduation
+            remaining_credits = max(0, total_credits_required - total_completed_credits)
+            semesters_remaining = max(1, remaining_credits // 12)  # Assuming 12 credits per semester
+            
+            response_data = {
+                'major': student_major,
+                'totalCredits': total_credits_required,
+                'completedCredits': total_completed_credits,
+                'remainingCredits': remaining_credits,
+                'progressPercentage': progress_percentage,
+                'semestersRemaining': semesters_remaining,
+                'requirements': degree_data
+            }
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Failed to fetch degree planning data: {str(e)}'
+            }, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
     return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)

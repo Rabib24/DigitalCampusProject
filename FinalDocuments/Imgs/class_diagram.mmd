@@ -1,0 +1,32 @@
+classDiagram
+    class User {
+        +int id
+        +string name
+        +string email
+        +login()
+    }
+    class Student {
+        +string studentId
+        +viewContent()
+        +takeAssessment()
+    }
+    class Teacher {
+        +string employeeId
+        +uploadContent()
+        +viewReports()
+    }
+    class Course {
+        +int courseId
+        +string title
+        +List lessons
+    }
+    class Assessment {
+        +int id
+        +int score
+        +generateFeedback()
+    }
+
+    User <|-- Student
+    User <|-- Teacher
+    Student "1" -- "*" Course : Enrolls
+    Course "1" -- "*" Assessment : Contains

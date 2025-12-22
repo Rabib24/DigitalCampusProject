@@ -262,15 +262,15 @@ export function CourseRegistrationView() {
   }
 
   return (
-    <div className="space-y-12 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 w-full">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
             <BookOpen className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-foreground">Course Registration</h2>
-            <p className="text-muted-foreground mt-1">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Course Registration</h2>
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               Browse and enroll in courses for the upcoming semester
             </p>
           </div>
@@ -283,11 +283,12 @@ export function CourseRegistrationView() {
       {cartItemCount > 0 && (
         <button
           type="button"
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary p-4 text-primary-foreground shadow-lg hover:bg-primary/90 transition-all"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary p-3 md:p-4 text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:shadow-xl"
           onClick={() => setShowCart(!showCart)}
+          aria-label="View enrollment cart"
         >
-          <ShoppingCart className="" />
-          <span className="font-bold text-lg">{cartItemCount}</span>
+          <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
+          <span className="font-bold text-base md:text-lg">{cartItemCount}</span>
         </button>
       )}
 
@@ -303,23 +304,25 @@ export function CourseRegistrationView() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           {/* Tab Navigation */}
-          <div className="flex border-b border-muted mb-6">
+          <div className="flex flex-col sm:flex-row border-b border-muted mb-6">
             <button
               type="button"
-              className={`px-4 py-2 font-medium text-sm ${activeTab === "all"
+              className={`px-4 py-2 font-medium text-sm sm:text-base ${
+                activeTab === "all"
                   ? "border-b-2 border-primary text-primary"
                   : "text-muted-foreground hover:text-foreground"
-                }`}
+              }`}
               onClick={() => setActiveTab("all")}
             >
               All Courses
             </button>
             <button
               type="button"
-              className={`px-4 py-2 font-medium text-sm flex items-center gap-2 ${activeTab === "recommended"
+              className={`px-4 py-2 font-medium text-sm sm:text-base flex items-center gap-2 ${
+                activeTab === "recommended"
                   ? "border-b-2 border-primary text-primary"
                   : "text-muted-foreground hover:text-foreground"
-                }`}
+              }`}
               onClick={() => setActiveTab("recommended")}
             >
               <Sparkles className="h-4 w-4" />
@@ -368,7 +371,7 @@ export function CourseRegistrationView() {
           </div>
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-3 xl:col-span-1">
           <EnrollmentCart
             isOpen={showCart}
             onClose={() => setShowCart(false)}
@@ -378,6 +381,13 @@ export function CourseRegistrationView() {
                 // Refresh cart and courses
                 const cart = await CourseEnrollmentService.getCart();
                 setCartItemCount(cart.length);
+                // Reload courses to reflect enrollment changes
+                const [availableCourses, recommended] = await Promise.all([
+                  CourseEnrollmentService.getAvailableCourses(),
+                  CourseEnrollmentService.getRecommendedCourses()
+                ]);
+                setCourses(availableCourses);
+                setRecommendedCourses(recommended);
               } catch (err) {
                 let errorMessage = "Failed to enroll from cart";
                 let retryable = false;

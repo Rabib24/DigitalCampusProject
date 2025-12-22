@@ -49,3 +49,7 @@ Username	Password
 90002	DigitalIUB123
 90003	DigitalIUB123
 90004	DigitalIUB123
+in faculty dashboard, faculty side bar menu cannot fetch data from backend. Check the menu:
+My Class, Assignment, Gradebook, Approval Request, Research.
+
+this all pages have problem to ferch data

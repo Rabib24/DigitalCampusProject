@@ -192,6 +192,12 @@ REDIS_CONFIG = {
 }
 
 
+# Create logs directory if it doesn't exist
+import os as _os
+_logs_dir = _os.path.join(BASE_DIR, 'logs')
+if not _os.path.exists(_logs_dir):
+    _os.makedirs(_logs_dir, exist_ok=True)
+
 # Logging configuration for AI services
 LOGGING = {
     'version': 1,

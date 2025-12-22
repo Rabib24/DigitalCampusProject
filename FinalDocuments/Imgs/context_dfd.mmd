@@ -1,0 +1,11 @@
+graph TD
+    S[Student] -- Login/Request --> P((AI Learning System))
+    P -- Content/Feedback --> S
+
+    T[Teacher] -- Upload/Monitor --> P
+    P -- Analytics/Reports --> T
+
+    A[Admin] -- Manage Users --> P
+    P -- System Logs --> A
+
+    style P fill:#f9f,stroke:#333,stroke-width:4px,shape:circle

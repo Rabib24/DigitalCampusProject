@@ -11,6 +11,9 @@ urlpatterns = [
     path('grades/', views.student_grades, name='student_grades'),
     path('grades/stats/', views.student_grade_stats, name='student_grade_stats'),
     
+    # Student degree planning endpoint
+    path('degree-planning/', views.degree_planning, name='degree_planning'),
+    
     # Student course enrollment endpoints
     path('courses/available/', course_views.get_available_courses, name='get_available_courses'),
     path('courses/search/', course_views.search_courses, name='search_courses'),

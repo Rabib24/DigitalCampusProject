@@ -33,7 +33,10 @@ def main():
     scripts = [
         'generate_user_data.py',           # Users must be created first
         'generate_course_data.py',         # Courses depend on users
+        'generate_enrollment_data.py',     # NEW: Enrollments depend on users and courses
         'generate_assignment_data.py',     # Assignments depend on courses
+        'generate_grade_data.py',          # NEW: Grades depend on enrollments and assignments
+        'generate_degree_progress_data.py', # NEW: Degree progress depends on enrollments
         'generate_research_data.py',       # Research depends on faculty users
         'generate_library_data.py',        # Library books
         'generate_finance_data.py',        # Finance data depends on users

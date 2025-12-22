@@ -1716,11 +1716,22 @@ def get_student_courses(request):
                     # Get course details
                     course = Course.objects.get(id=enrollment.course_id)
                     
+                    # Get instructor name
+                    instructor_name = "Unknown"
+                    if course.instructor_id:
+                        try:
+                            from users.models import User
+                            instructor = User.objects.get(username=course.instructor_id)
+                            instructor_name = instructor.get_full_name()
+                        except User.DoesNotExist:
+                            instructor_name = course.instructor_id
+                    
                     # Format schedule data
                     formatted_schedule = format_schedule_for_frontend(course.schedule)
                     
                     # Get assignments for this course
                     assignments = Assignment.objects.filter(course_id=course.id)
+                    total_assignments = assignments.count()
                     
                     # Count submitted assignments
                     submitted_count = 0
@@ -1732,17 +1743,33 @@ def get_student_courses(request):
                         if submission:
                             submitted_count += 1
                     
+                    # Calculate progress (based on submitted assignments)
+                    progress = 0
+                    if total_assignments > 0:
+                        progress = int((submitted_count / total_assignments) * 100)
+                    
+                    # Determine course status
+                    course_status = 'Active'
+                    if enrollment.status == 'completed':
+                        course_status = 'Completed'
+                    elif enrollment.status == 'dropped':
+                        course_status = 'Dropped'
+                    
                     course_data = {
                         'id': course.id,
                         'code': course.code,
                         'name': course.name,
+                        'instructor': instructor_name,
                         'credits': course.credits,
+                        'status': course_status,
+                        'resources': total_assignments,  # For "X Resources" display
+                        'progress': progress,
                         'department': course.department,
                         'schedule': formatted_schedule,
                         'description': course.description,
                         'instructor_id': course.instructor_id,
                         'assignments': {
-                            'total': assignments.count(),
+                            'total': total_assignments,
                             'submitted': submitted_count
                         }
                     }

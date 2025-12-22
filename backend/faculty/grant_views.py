@@ -192,3 +192,37 @@ def upload_grant_document(request, grant_id):
             'success': False,
             'message': f'Failed to upload document: {str(e)}'
         }, status=500)
+
+@csrf_exempt
+@faculty_required
+def get_grant_tracking(request, grant_id):
+    """Get tracking information for a grant application"""
+    try:
+        grant = Grant.objects.get(id=grant_id, faculty=request.faculty)
+        
+        # Return tracking information
+        tracking_info = {
+            'id': grant.id,
+            'title': grant.title,
+            'status': grant.status,
+            'submission_date': str(grant.submission_date) if grant.submission_date else None,
+            'deadline': str(grant.deadline) if grant.deadline else None,
+            'funding_agency': grant.funding_agency,
+            'amount': grant.amount,
+            'timeline': []  # TODO: Add timeline tracking when model is updated
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'tracking': tracking_info
+        })
+    except Grant.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Grant application not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to fetch tracking information: {str(e)}'
+        }, status=500)

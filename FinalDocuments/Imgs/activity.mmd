@@ -1,0 +1,12 @@
+stateDiagram-v2
+    [*] --> Login
+    Login --> VerifyCredentials
+    VerifyCredentials --> Valid : Yes
+    VerifyCredentials --> Invalid : No
+    Invalid --> Login
+    Valid --> Dashboard
+    Dashboard --> SelectCourse
+    SelectCourse --> ViewContent
+    ViewContent --> TakeAssessment
+    TakeAssessment --> ViewResults
+    ViewResults --> [*]
