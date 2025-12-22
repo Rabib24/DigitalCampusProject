@@ -226,7 +226,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 yarn.lock
-package-lock.json
+# Keep package-lock.json in frontend, ignore in root
+/package-lock.json
 
 # Next.js
 .next/
@@ -250,6 +251,5 @@ docker-compose.override.yml
 
 # Project specific files
 FinalDocuments.zip
-Database.backup
 *.local
 *.zip
