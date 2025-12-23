@@ -58,14 +58,63 @@ export default function FacultyProfilePage() {
     }));
   };
 
-  const handleSaveProfile = () => {
-    // In a real implementation, we would save to an API
-    console.log("Saving profile:", profile);
+  const handleSaveProfile = async () => {
+    try {
+      const response = await fetch('/api/faculty/profile/update/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          first_name: profile.firstName,
+          last_name: profile.lastName,
+          email: profile.email,
+          department: profile.department,
+          bio: profile.bio,
+          profile_visibility: profile.profileVisibility
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+      
+      const data = await response.json();
+      console.log('Profile saved successfully:', data);
+      // Show success message to user
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    }
   };
 
-  const handleSaveNotifications = () => {
-    // In a real implementation, we would save to an API
-    console.log("Saving notifications:", notifications);
+  const handleSaveNotifications = async () => {
+    try {
+      const response = await fetch('/api/faculty/settings/update/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          notifications: notifications
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save notification settings');
+      }
+      
+      const data = await response.json();
+      console.log('Notification settings saved successfully:', data);
+      // Show success message to user
+      alert('Notification settings updated successfully!');
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
+      alert('Failed to save notification settings. Please try again.');
+    }
   };
 
   return (

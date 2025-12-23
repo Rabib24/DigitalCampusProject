@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart3, Download, Search, Filter, Eye, Edit } from "lucide-react";
 import { useFaculty } from "@/hooks/faculty/FacultyContext";
 import { FacultyProtectedRoute } from "@/components/faculty/FacultyProtectedRoute";
+import { getFacultyGradebook } from "@/lib/faculty/api";
 
 interface StudentGrade {
   id: number;
@@ -22,53 +23,64 @@ interface StudentGrade {
 
 export default function FacultyGradebookPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { state } = useFaculty();
   const [students, setStudents] = useState<StudentGrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [assignments, setAssignments] = useState<string[]>([]);
+  const [courseId, setCourseId] = useState<string | null>(null);
+  const [courseName, setCourseName] = useState<string>("");
 
-  // In a real implementation, we would fetch gradebook data from an API
+  // Fetch gradebook data from the API
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setStudents([
-        {
-          id: 1,
-          studentId: "S2024001",
-          studentName: "Ahmed Khan",
-          studentEmail: "ahmed.khan@student.university.edu",
-          assignmentGrades: {
-            "Assignment 1": 85,
-            "Quiz 1": 90,
-            "Midterm": 88,
-            "Project": "-",
-            "Final Exam": "-"
-          },
-          totalGrade: 87.5,
-          letterGrade: "B+"
-        },
-        {
-          id: 2,
-          studentId: "S2024002",
-          studentName: "Fatima Rahman",
-          studentEmail: "fatima.r@student.university.edu",
-          assignmentGrades: {
-            "Assignment 1": 92,
-            "Quiz 1": 88,
-            "Midterm": 95,
-            "Project": "-",
-            "Final Exam": "-"
-          },
-          totalGrade: 91.5,
-          letterGrade: "A-"
+    const fetchGradebook = async () => {
+      try {
+        setLoading(true);
+        
+        // Get courseId from URL params or use first course from context
+        const urlCourseId = searchParams.get('courseId');
+        let targetCourseId = urlCourseId;
+        
+        if (!targetCourseId && state.courses && state.courses.length > 0) {
+          // Use first course if no courseId in URL
+          targetCourseId = state.courses[0].id.toString();
         }
-      ]);
-      setAssignments(["Assignment 1", "Quiz 1", "Midterm", "Project", "Final Exam"]);
-      setLoading(false);
-    }, 500);
-  }, []);
+        
+        if (!targetCourseId) {
+          setError("No course selected. Please select a course from the Courses page.");
+          setLoading(false);
+          return;
+        }
+        
+        setCourseId(targetCourseId);
+        
+        // Fetch gradebook data from backend
+        const data = await getFacultyGradebook(parseInt(targetCourseId));
+        
+        if (data.students) {
+          setStudents(data.students);
+        }
+        
+        if (data.assignments) {
+          setAssignments(data.assignments);
+        }
+        
+        if (data.course_name) {
+          setCourseName(data.course_name);
+        }
+        
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load gradebook");
+        console.error('Error fetching gradebook:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGradebook();
+  }, [searchParams, state.courses]);
 
   const filteredStudents = students.filter(student => 
     student.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -101,7 +113,7 @@ export default function FacultyGradebookPage() {
       <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Gradebook</h1>
+          <h1 className="text-3xl font-bold">Gradebook{courseName && ` - ${courseName}`}</h1>
           <p className="text-muted-foreground">Manage and view student grades</p>
         </div>
         <div className="flex gap-2">

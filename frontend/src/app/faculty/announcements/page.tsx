@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,53 +40,52 @@ interface Announcement {
 }
 
 export default function FacultyAnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([
-    {
-      id: "1",
-      title: "Final Exam Schedule Published",
-      message: "The final exam schedule for the upcoming semester has been published. Please review and inform your students accordingly.",
-      createdAt: "2023-06-10T09:00:00Z",
-      updatedAt: "2023-06-10T09:00:00Z",
-      createdBy: "Dr. Jane Smith",
-      targetAudience: "all",
-      status: "published",
-      views: 124,
-      likes: 8
-    },
-    {
-      id: "2",
-      title: "New Research Grant Opportunity",
-      message: "The National Science Foundation has announced a new research grant opportunity. Faculty members interested in applying should contact the research office by July 15th.",
-      createdAt: "2023-06-08T14:30:00Z",
-      updatedAt: "2023-06-08T14:30:00Z",
-      createdBy: "Dr. John Doe",
-      targetAudience: "department",
-      department: "Computer Science",
-      status: "published",
-      views: 42,
-      likes: 3
-    },
-    {
-      id: "3",
-      title: "Updated Office Hours",
-      message: "My office hours for the summer semester will be Tuesdays and Thursdays from 2:00 PM to 4:00 PM. Please feel free to stop by with any questions.",
-      createdAt: "2023-06-05T11:15:00Z",
-      updatedAt: "2023-06-05T11:15:00Z",
-      createdBy: "Prof. Alice Johnson",
-      targetAudience: "specific-course",
-      courseId: "CS-301",
-      status: "published",
-      views: 28,
-      likes: 2
-    }
-  ]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [courses, setCourses] = useState<FacultyCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [courses] = useState<FacultyCourse[]>([
-    { id: "1", code: "CS-101", name: "Introduction to Computer Science", semester: "Fall", year: 2023, credits: 3, department: "Computer Science", studentCount: 45, syllabusStatus: "published" },
-    { id: "2", code: "CS-205", name: "Web Development", semester: "Fall", year: 2023, credits: 3, department: "Computer Science", studentCount: 32, syllabusStatus: "published" },
-    { id: "3", code: "CS-301", name: "Data Science and Machine Learning", semester: "Fall", year: 2023, credits: 4, department: "Computer Science", studentCount: 28, syllabusStatus: "published" },
-    { id: "4", code: "CS-401", name: "Capstone Project", semester: "Fall", year: 2023, credits: 4, department: "Computer Science", studentCount: 15, syllabusStatus: "published" }
-  ]);
+  // Fetch announcements and courses from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch announcements
+        const announcementsResponse = await fetch('/api/faculty/announcements/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (announcementsResponse.ok) {
+          const data = await announcementsResponse.json();
+          setAnnouncements(data.announcements || []);
+        }
+        
+        // Fetch courses for the dropdown
+        const coursesResponse = await fetch('/api/faculty/courses/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (coursesResponse.ok) {
+          const coursesData = await coursesResponse.json();
+          setCourses(coursesData.courses || []);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   const [isCreating, setIsCreating] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({
@@ -101,35 +100,65 @@ export default function FacultyAnnouncementsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const handleCreateAnnouncement = () => {
+  const handleCreateAnnouncement = async () => {
     if (!newAnnouncement.title || !newAnnouncement.message) return;
 
-    const announcement: Announcement = {
-      id: (announcements.length + 1).toString(),
-      title: newAnnouncement.title,
-      message: newAnnouncement.message,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: "Current Faculty",
-      targetAudience: newAnnouncement.targetAudience,
-      courseId: newAnnouncement.courseId,
-      department: newAnnouncement.department,
-      year: newAnnouncement.year,
-      status: "published",
-      views: 0,
-      likes: 0
-    };
+    try {
+      const response = await fetch('/api/faculty/announcements/create/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          title: newAnnouncement.title,
+          message: newAnnouncement.message,
+          targetAudience: newAnnouncement.targetAudience,
+          courseId: newAnnouncement.courseId,
+          department: newAnnouncement.department,
+          year: newAnnouncement.year,
+          status: 'published'
+        })
+      });
 
-    setAnnouncements([announcement, ...announcements]);
-    setNewAnnouncement({
-      title: "",
-      message: "",
-      targetAudience: "all",
-      courseId: "",
-      department: "",
-      year: 2023
-    });
-    setIsCreating(false);
+      if (!response.ok) {
+        throw new Error('Failed to create announcement');
+      }
+
+      const data = await response.json();
+      
+      // Add the new announcement to the list
+      const newAnnouncementData: Announcement = {
+        id: data.announcement.id,
+        title: newAnnouncement.title,
+        message: newAnnouncement.message,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: "Current Faculty",
+        targetAudience: newAnnouncement.targetAudience,
+        courseId: newAnnouncement.courseId,
+        department: newAnnouncement.department,
+        year: newAnnouncement.year,
+        status: "published",
+        views: 0,
+        likes: 0
+      };
+
+      setAnnouncements([newAnnouncementData, ...announcements]);
+      setNewAnnouncement({
+        title: "",
+        message: "",
+        targetAudience: "all",
+        courseId: "",
+        department: "",
+        year: 2023
+      });
+      setIsCreating(false);
+      alert('Announcement created successfully!');
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      alert('Failed to create announcement. Please try again.');
+    }
   };
 
   const filteredAnnouncements = announcements.filter(announcement => {

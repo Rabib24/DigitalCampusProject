@@ -39,42 +39,63 @@ export default function FacultyAnalyticsPage() {
   });
   const [loading, setLoading] = useState(true);
 
-  // In a real implementation, we would fetch analytics data from an API
+  // Fetch analytics data from the API
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setAttendanceData([
-        { name: "CS-101", attendance: 85 },
-        { name: "CS-205", attendance: 78 },
-        { name: "CS-301", attendance: 92 },
-        { name: "CS-401", attendance: 88 },
-      ]);
-      
-      setGradeDistributionData([
-        { name: "A", value: 15 },
-        { name: "B", value: 25 },
-        { name: "C", value: 30 },
-        { name: "D", value: 18 },
-        { name: "F", value: 12 },
-      ]);
-      
-      setStudentPerformanceData([
-        { week: "Week 1", cs101: 75, cs205: 80, cs301: 85 },
-        { week: "Week 2", cs101: 78, cs205: 82, cs301: 87 },
-        { week: "Week 3", cs101: 80, cs205: 85, cs301: 89 },
-        { week: "Week 4", cs101: 82, cs205: 87, cs301: 91 },
-        { week: "Week 5", cs101: 85, cs205: 89, cs301: 93 },
-      ]);
-      
-      setStats({
-        averageAttendance: 85,
-        avgAssignmentScore: 82,
-        studentEngagement: 78,
-        coursesTaught: 4
-      });
-      
-      setLoading(false);
-    }, 500);
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faculty/analytics/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch analytics');
+        }
+        
+        const data = await response.json();
+        
+        // Map backend data to frontend format
+        if (data.attendance_data) {
+          setAttendanceData(data.attendance_data);
+        }
+        
+        if (data.grade_distribution) {
+          setGradeDistributionData(data.grade_distribution);
+        }
+        
+        if (data.performance_trend) {
+          setStudentPerformanceData(data.performance_trend);
+        }
+        
+        if (data.stats) {
+          setStats({
+            averageAttendance: data.stats.average_attendance || 0,
+            avgAssignmentScore: data.stats.avg_assignment_score || 0,
+            studentEngagement: data.stats.student_engagement || 0,
+            coursesTaught: data.stats.courses_taught || 0
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching analytics:', err);
+        // Set default empty data on error
+        setAttendanceData([]);
+        setGradeDistributionData([]);
+        setStudentPerformanceData([]);
+        setStats({
+          averageAttendance: 0,
+          avgAssignmentScore: 0,
+          studentEngagement: 0,
+          coursesTaught: 0
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAnalytics();
   }, []);
 
   if (loading) {

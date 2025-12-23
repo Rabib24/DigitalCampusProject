@@ -1,257 +1,155 @@
+"""
+Faculty Notification Management Views
+Handles notification retrieval and management for faculty
+"""
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.utils import timezone
-import json
-import uuid
 from communications.models import Notification
-from users.models import Faculty
-from .pagination import paginate_notifications
-from .filtering import apply_filtering_and_sorting
+from .decorators import faculty_required
+import json
+
 
 @csrf_exempt
-def get_faculty_notifications(request):
-    """Get all notifications for the authenticated faculty member"""
-    if request.method == 'GET':
-        try:
-            # Get faculty from request (attached by middleware)
-            faculty_profile = request.faculty
-            user = request.user
+@require_http_methods(["GET"])
+@faculty_required
+def get_notifications(request):
+    """Get all notifications for the faculty member"""
+    try:
+        faculty_id = request.faculty.user_id
+        
+        # Get all notifications for this faculty member
+        notifications = Notification.objects.filter(user_id=faculty_id).order_by('-created_at')
+        
+        # Convert to JSON format
+        notifications_data = []
+        for notification in notifications:
+            # Determine type based on notification attributes
+            notification_type = "announcement"
+            if 'assignment' in notification.message.lower():
+                notification_type = "assignment"
+            elif 'grade' in notification.message.lower() or 'grading' in notification.message.lower():
+                notification_type = "grading"
+            elif 'advis' in notification.message.lower():
+                notification_type = "advising"
+            elif 'research' in notification.message.lower():
+                notification_type = "research"
+            elif 'system' in notification.message.lower():
+                notification_type = "system"
             
-            # Get notifications for this user
-            notifications = Notification.objects.filter(user_id=user.id)  # type: ignore
+            # Determine priority based on notification type
+            priority = "low"
+            if notification.type in ['warning', 'error']:
+                priority = "high"
+            elif notification.type == 'info':
+                priority = "medium"
             
-            # Apply filtering and sorting
-            notifications = apply_filtering_and_sorting(notifications, request, 'notifications')
-            
-            # Return paginated response with cursor-based pagination
-            return paginate_notifications(notifications, request)
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Failed to retrieve notifications'
-            }, status=500)
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Method not allowed'
-    }, status=405)
+            notifications_data.append({
+                'id': notification.id,
+                'title': notification.title,
+                'message': notification.message,
+                'timestamp': notification.created_at.isoformat(),
+                'read': notification.is_read,
+                'type': notification_type,
+                'priority': priority
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'notifications': notifications_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to fetch notifications: {str(e)}'
+        }, status=500)
+
 
 @csrf_exempt
-def get_unread_notifications(request):
-    """Get unread notifications for the authenticated faculty member"""
-    if request.method == 'GET':
+@require_http_methods(["PUT"])
+@faculty_required
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    try:
+        faculty_id = request.faculty.user_id
+        
+        # Get and mark notification as read
         try:
-            # Get faculty from request (attached by middleware)
-            faculty_profile = request.faculty
-            user = request.user
-            
-            # Get unread notifications for this user
-            notifications = Notification.objects.filter(user_id=user.id, is_read=False)  # type: ignore
-            
-            # Apply filtering and sorting
-            notifications = apply_filtering_and_sorting(notifications, request, 'notifications')
-            
-            # Return paginated response with cursor-based pagination
-            return paginate_notifications(notifications, request)
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Failed to retrieve unread notifications'
-            }, status=500)
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Method not allowed'
-    }, status=405)
-
-@csrf_exempt
-def mark_notification_as_read(request, notification_id):
-    """Mark a specific notification as read"""
-    if request.method == 'PUT':
-        try:
-            # Get faculty from request (attached by middleware)
-            faculty_profile = request.faculty
-            user = request.user
-            
-            # Get notification
-            try:
-                notification = Notification.objects.get(id=notification_id, user_id=user.id)  # type: ignore
-            except Notification.DoesNotExist:  # type: ignore
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Notification not found or access denied'
-                }, status=404)
-            
-            # Mark as read
+            notification = Notification.objects.get(id=notification_id, user_id=faculty_id)
             notification.mark_as_read()
             
             return JsonResponse({
                 'success': True,
                 'message': 'Notification marked as read',
-                'data': notification.to_json()
+                'notification': notification.to_json()
             })
-            
-        except Exception as e:
+        except Notification.DoesNotExist:
             return JsonResponse({
                 'success': False,
-                'message': 'Failed to mark notification as read'
-            }, status=500)
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Method not allowed'
-    }, status=405)
+                'message': 'Notification not found'
+            }, status=404)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to mark notification as read: {str(e)}'
+        }, status=500)
+
 
 @csrf_exempt
-def mark_all_notifications_as_read(request):
-    """Mark all notifications as read for the authenticated faculty member"""
-    if request.method == 'PUT':
-        try:
-            # Get faculty from request (attached by middleware)
-            faculty_profile = request.faculty
-            user = request.user
-            
-            # Get all unread notifications for this user
-            notifications = Notification.objects.filter(user_id=user.id, is_read=False)  # type: ignore
-            
-            # Mark all as read
-            for notification in notifications:
-                notification.mark_as_read()
-            
-            return JsonResponse({
-                'success': True,
-                'message': f'Marked {notifications.count()} notifications as read'
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Failed to mark all notifications as read'
-            }, status=500)
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Method not allowed'
-    }, status=405)
+@require_http_methods(["PUT"])
+@faculty_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    try:
+        faculty_id = request.faculty.user_id
+        
+        # Mark all notifications as read
+        notifications = Notification.objects.filter(user_id=faculty_id, is_read=False)
+        count = notifications.count()
+        notifications.update(is_read=True)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{count} notifications marked as read',
+            'count': count
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to mark all notifications as read: {str(e)}'
+        }, status=500)
+
 
 @csrf_exempt
+@require_http_methods(["DELETE"])
+@faculty_required
 def delete_notification(request, notification_id):
-    """Delete a specific notification"""
-    if request.method == 'DELETE':
+    """Delete a notification"""
+    try:
+        faculty_id = request.faculty.user_id
+        
+        # Get and delete notification
         try:
-            # Get faculty from request (attached by middleware)
-            faculty_profile = request.faculty
-            user = request.user
-            
-            # Get notification
-            try:
-                notification = Notification.objects.get(id=notification_id, user_id=user.id)  # type: ignore
-            except Notification.DoesNotExist:  # type: ignore
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Notification not found or access denied'
-                }, status=404)
-            
-            # Delete notification
+            notification = Notification.objects.get(id=notification_id, user_id=faculty_id)
             notification.delete()
             
             return JsonResponse({
                 'success': True,
                 'message': 'Notification deleted successfully'
             })
-            
-        except Exception as e:
+        except Notification.DoesNotExist:
             return JsonResponse({
                 'success': False,
-                'message': 'Failed to delete notification'
-            }, status=500)
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Method not allowed'
-    }, status=405)
-
-@csrf_exempt
-def create_notification(request):
-    """Create a new notification (for testing purposes)"""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            
-            # Get faculty from request (attached by middleware)
-            faculty_profile = request.faculty
-            user = request.user
-            
-            # Validate required fields
-            required_fields = ['title', 'message', 'type']
-            for field in required_fields:
-                if field not in data:
-                    return JsonResponse({
-                        'success': False,
-                        'message': f'Missing required field: {field}'
-                    }, status=400)
-            
-            # Generate notification ID
-            notification_id = str(uuid.uuid4())
-            
-            # Create notification
-            notification = Notification(
-                id=notification_id,
-                user_id=user.id,
-                title=data['title'],
-                message=data['message'],
-                type=data['type'],
-                is_read=False
-            )
-            notification.save()
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Notification created successfully',
-                'data': notification.to_json()
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Failed to create notification'
-            }, status=500)
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Method not allowed'
-    }, status=405)
-
-@csrf_exempt
-def get_notification_count(request):
-    """Get notification counts for the authenticated faculty member"""
-    if request.method == 'GET':
-        try:
-            # Get faculty from request (attached by middleware)
-            faculty_profile = request.faculty
-            user = request.user
-            
-            # Get notification counts
-            total_notifications = Notification.objects.filter(user_id=user.id).count()  # type: ignore
-            unread_notifications = Notification.objects.filter(user_id=user.id, is_read=False).count()  # type: ignore
-            
-            return JsonResponse({
-                'success': True,
-                'data': {
-                    'total': total_notifications,
-                    'unread': unread_notifications
-                }
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Failed to retrieve notification counts'
-            }, status=500)
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Method not allowed'
-    }, status=405)
+                'message': 'Notification not found'
+            }, status=404)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Failed to delete notification: {str(e)}'
+        }, status=500)

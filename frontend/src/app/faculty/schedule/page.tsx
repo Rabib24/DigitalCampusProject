@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,38 +19,52 @@ interface ClassSession {
 }
 
 export default function FacultySchedulePage() {
-  const [sessions, setSessions] = useState<ClassSession[]>([
-    {
-      id: 1,
-      course: "Data Science and Machine Learning",
-      courseCode: "CS-301",
-      time: "09:00 AM - 10:30 AM",
-      duration: "1.5 hours",
-      location: "Room 205, Building A",
-      type: "lecture",
-      recordingStatus: "not-started"
-    },
-    {
-      id: 2,
-      course: "Web Development",
-      courseCode: "CS-205",
-      time: "11:00 AM - 12:30 PM",
-      duration: "1.5 hours",
-      location: "Room 301, Building B",
-      type: "lab",
-      recordingStatus: "not-started"
-    },
-    {
-      id: 3,
-      course: "Capstone Project",
-      courseCode: "CS-401",
-      time: "02:00 PM - 04:00 PM",
-      duration: "2 hours",
-      location: "Room 102, Building C",
-      type: "seminar",
-      recordingStatus: "not-started"
-    }
-  ]);
+  const [sessions, setSessions] = useState<ClassSession[]>([]);
+  const [weeklyOverview, setWeeklyOverview] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch schedule data from the API
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faculty/schedule/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch schedule');
+        }
+        
+        const data = await response.json();
+        setSessions(data.sessions || []);
+        
+        // Fetch weekly overview
+        const overviewResponse = await fetch('/api/faculty/schedule/weekly-overview/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (overviewResponse.ok) {
+          const overviewData = await overviewResponse.json();
+          setWeeklyOverview(overviewData.weekly_overview || {});
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch schedule');
+        console.error('Error fetching schedule:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSchedule();
+  }, []);
 
   const getTypeVariant = (type: ClassSession["type"]) => {
     switch (type) {
@@ -106,7 +120,16 @@ export default function FacultySchedulePage() {
 
   return (
     <FacultyProtectedRoute>
-      <div className="space-y-6">
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <p>Loading schedule...</p>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+          <p>Error: {error}</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Class Schedule</h1>
@@ -179,11 +202,11 @@ export default function FacultySchedulePage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-2">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => (
+            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
               <div key={day} className="text-center p-2 border rounded">
-                <div className="font-medium">{day}</div>
+                <div className="font-medium">{day.substring(0, 3)}</div>
                 <div className="text-sm text-muted-foreground">
-                  {index < 5 ? `${2 + index} classes` : "No classes"}
+                  {weeklyOverview[day] ? `${weeklyOverview[day]} classes` : "No classes"}
                 </div>
               </div>
             ))}
@@ -191,6 +214,7 @@ export default function FacultySchedulePage() {
         </CardContent>
       </Card>
     </div>
+      )}
     </FacultyProtectedRoute>
   );
 }

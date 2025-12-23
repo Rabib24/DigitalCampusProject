@@ -30,44 +30,45 @@ export default function FacultyAdvisingPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // In a real implementation, we would fetch advisee data from an API
+  // Fetch advisee data from the API
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setAdvisees([
-        {
-          id: 1,
-          studentId: "S2024001",
-          name: "Ahmed Khan",
-          email: "ahmed.khan@student.university.edu",
-          cgpa: 3.75,
-          creditsCompleted: 95,
-          program: "Computer Science",
-          status: "good"
-        },
-        {
-          id: 2,
-          studentId: "S2024002",
-          name: "Fatima Rahman",
-          email: "fatima.r@student.university.edu",
-          cgpa: 3.2,
-          creditsCompleted: 82,
-          program: "Software Engineering",
-          status: "warning"
-        },
-        {
-          id: 3,
-          studentId: "S2024003",
-          name: "Mahmudul Hasan",
-          email: "mahmudul.h@student.university.edu",
-          cgpa: 2.8,
-          creditsCompleted: 75,
-          program: "Information Technology",
-          status: "at-risk"
+    const fetchAdvisees = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faculty/advising/advisees/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch advisees');
         }
-      ]);
-      setLoading(false);
-    }, 500);
+        
+        const data = await response.json();
+        
+        // Map backend data to frontend format
+        const mappedAdvisees = (data.advisees || []).map((advisee: any) => ({
+          id: advisee.id,
+          studentId: advisee.student_id,
+          name: `${advisee.first_name} ${advisee.last_name}`,
+          email: advisee.email,
+          cgpa: advisee.cgpa || 0,
+          creditsCompleted: advisee.credits_completed || 0,
+          program: advisee.program || 'Unknown',
+          status: advisee.cgpa >= 3.5 ? 'good' : advisee.cgpa >= 3.0 ? 'warning' : 'at-risk'
+        }));
+        
+        setAdvisees(mappedAdvisees);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch advisees');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAdvisees();
   }, []);
 
   const getStatusVariant = (status: Advisee["status"]) => {

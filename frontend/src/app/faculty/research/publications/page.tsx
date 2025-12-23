@@ -37,47 +37,11 @@ interface Publication {
 }
 
 export default function PublicationManagementPage() {
-  const [publications, setPublications] = useState<Publication[]>([
-    {
-      id: "1",
-      title: "Machine Learning Approaches for Healthcare Predictive Analytics",
-      authors: ["Dr. Jane Smith", "Dr. John Doe", "Prof. Alice Johnson"],
-      journal: "Journal of Medical Informatics",
-      date: "2023-09-15",
-      doi: "10.1234/jmi.2023.001",
-      status: "submitted",
-      project: "Machine Learning in Healthcare",
-      abstract: "This paper presents novel machine learning techniques for predicting patient outcomes...",
-      keywords: ["machine learning", "healthcare", "predictive analytics", "data science"]
-    },
-    {
-      id: "2",
-      title: "A Comprehensive Review of AI in Medicine",
-      authors: ["Dr. Jane Smith", "Dr. Emily Brown"],
-      journal: "AI in Medicine",
-      date: "2023-11-20",
-      status: "draft",
-      abstract: "This review examines the current state of artificial intelligence applications in medicine...",
-      keywords: ["artificial intelligence", "medicine", "review", "applications"]
-    },
-    {
-      id: "3",
-      title: "Deep Learning for Medical Image Analysis",
-      authors: ["Dr. John Doe", "Dr. Jane Smith"],
-      journal: "Medical Image Analysis",
-      date: "2023-07-10",
-      doi: "10.5678/mia.2023.003",
-      status: "published",
-      project: "Medical Imaging Research",
-      abstract: "We propose a new deep learning architecture for medical image segmentation...",
-      keywords: ["deep learning", "medical imaging", "segmentation", "CNN"]
-    }
-  ]);
-
+  const [publications, setPublications] = useState<Publication[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [newPublication, setNewPublication] = useState({
@@ -91,6 +55,48 @@ export default function PublicationManagementPage() {
     keywords: ""
   });
 
+  // Fetch publications from API
+  useEffect(() => {
+    const fetchPublications = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faculty/publications/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch publications');
+        }
+        
+        const data = await response.json();
+        // Map backend data to frontend format
+        const mappedPublications = (data.publications || []).map((pub: any) => ({
+          id: pub.id,
+          title: pub.title,
+          authors: pub.authors || [],
+          journal: pub.journal || '',
+          date: pub.publication_date,
+          doi: pub.doi,
+          status: pub.status || 'published',
+          project: pub.research_project_id,
+          abstract: pub.abstract,
+          keywords: pub.keywords || []
+        }));
+        setPublications(mappedPublications);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch publications');
+        console.error('Error fetching publications:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPublications();
+  }, []);
+
   const handleCreatePublication = async () => {
     if (!newPublication.title || !newPublication.authors || !newPublication.journal || !newPublication.date) {
       setError("Please fill in all required fields");
@@ -101,22 +107,45 @@ export default function PublicationManagementPage() {
     setError(null);
 
     try {
-      // For now, we'll add it to the local state
-      // In a real implementation, we would associate it with a specific research project
-      const publication: Publication = {
-        id: (publications.length + 1).toString(),
-        title: newPublication.title,
-        authors: newPublication.authors.split(",").map(author => author.trim()),
-        journal: newPublication.journal,
-        date: newPublication.date,
-        doi: newPublication.doi || undefined,
-        status: "draft",
-        project: newPublication.project || undefined,
-        abstract: newPublication.abstract || undefined,
-        keywords: newPublication.keywords.split(",").map(keyword => keyword.trim())
+      const response = await fetch('/api/faculty/publications/create/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          title: newPublication.title,
+          authors: newPublication.authors.split(",").map(author => author.trim()),
+          journal: newPublication.journal,
+          publication_date: newPublication.date,
+          doi: newPublication.doi,
+          research_project_id: newPublication.project,
+          abstract: newPublication.abstract,
+          keywords: newPublication.keywords.split(",").map(keyword => keyword.trim())
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create publication');
+      }
+
+      const data = await response.json();
+      
+      // Map the created publication to frontend format
+      const createdPub: Publication = {
+        id: data.publication.id,
+        title: data.publication.title,
+        authors: data.publication.authors || [],
+        journal: data.publication.journal || '',
+        date: data.publication.publication_date,
+        doi: data.publication.doi,
+        status: 'draft',
+        project: data.publication.research_project_id,
+        abstract: data.publication.abstract,
+        keywords: data.publication.keywords || []
       };
 
-      setPublications([publication, ...publications]);
+      setPublications([createdPub, ...publications]);
       setNewPublication({
         title: "",
         authors: "",
@@ -128,6 +157,7 @@ export default function PublicationManagementPage() {
         keywords: ""
       });
       setIsCreating(false);
+      alert('Publication created successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create publication");
     } finally {
@@ -159,9 +189,26 @@ export default function PublicationManagementPage() {
     }
   };
 
-  const handleDeletePublication = (id: string) => {
+  const handleDeletePublication = async (id: string) => {
     if (confirm("Are you sure you want to delete this publication?")) {
-      setPublications(publications.filter(pub => pub.id !== id));
+      try {
+        const response = await fetch(`/api/faculty/publications/${id}/delete/`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete publication');
+        }
+
+        setPublications(publications.filter(pub => pub.id !== id));
+        alert('Publication deleted successfully!');
+      } catch (err) {
+        alert('Failed to delete publication. Please try again.');
+      }
     }
   };
 

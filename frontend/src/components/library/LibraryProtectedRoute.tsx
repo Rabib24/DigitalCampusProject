@@ -30,7 +30,7 @@ export function LibraryProtectedRoute({ children }: LibraryProtectedRouteProps) 
           return;
         }
         
-        if (userData.role !== "library" && userData.role !== "library_staff") {
+        if (userData.role !== "library" && userData.role !== "library_staff" && userData.role !== "staff") {
           // User is not library staff, redirect to unauthorized page or login
           const errorMsg = "Access denied. You must be library staff to access this page.";
           console.log(errorMsg);

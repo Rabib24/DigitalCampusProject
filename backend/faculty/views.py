@@ -136,7 +136,7 @@ def courses_list(request):
 
 
 @csrf_exempt
-@faculty_permission_required('course_view')
+@faculty_required
 def course_detail(request, course_id):
     """Get faculty course detail"""
     try:
@@ -271,7 +271,7 @@ def assignment_detail(request, assignment_id):
 
 
 @csrf_exempt
-@faculty_permission_required('grade_view')
+@faculty_required
 def gradebook(request, course_id):
     """Get course gradebook"""
     try:
@@ -281,6 +281,11 @@ def gradebook(request, course_id):
         except Course.DoesNotExist:  # type: ignore
             return JsonResponse({'success': False, 'message': 'Course not found or access denied'}, status=404)
         
+        # Get all assignments for this course
+        assignments_qs = Assignment.objects.filter(course_id=course_id).order_by('due_date')  # type: ignore
+        assignment_names = [assignment.title for assignment in assignments_qs]
+        assignment_ids = [assignment.id for assignment in assignments_qs]
+        
         # Get enrollments for this course
         enrollments = Enrollment.objects.filter(course_id=course_id)  # type: ignore
         
@@ -288,7 +293,6 @@ def gradebook(request, course_id):
         students = []
         for enrollment in enrollments:
             # Get actual student data from the User model
-            # Since Enrollment doesn't have a FK to Student, we need to get the student by student_id
             try:
                 student = Student.objects.get(student_id=enrollment.student_id)  # type: ignore
                 user = student.user
@@ -296,34 +300,74 @@ def gradebook(request, course_id):
                 # If student doesn't exist, skip this enrollment
                 continue
             
-            # Get grades for this student in this course
-            grades = Grade.objects.filter(student_id=student.student_id, course_id=course_id)  # type: ignore
+            # Build assignment grades dictionary
+            assignment_grades = {}
+            total_points = 0
+            earned_points = 0
             
-            # Calculate overall grade
-            overall_grade = 0
-            assignment_grades = []
-            if grades.exists():
-                total_points = 0
-                earned_points = 0
-                for grade in grades:
+            for assignment in assignments_qs:
+                try:
+                    grade = Grade.objects.get(
+                        student_id=student.student_id, 
+                        assignment_id=assignment.id
+                    )  # type: ignore
+                    
                     if grade.value is not None:
-                        assignment_grades.append(float(grade.value))
-                        # Assuming each assignment is worth 100 points for simplicity
+                        grade_value = float(grade.value)
+                        assignment_grades[assignment.title] = grade_value
+                        # Assuming each assignment is worth 100 points
                         total_points += 100
-                        earned_points += float(grade.value)
-                if total_points > 0:
-                    overall_grade = (earned_points / total_points) * 100
+                        earned_points += grade_value
+                    else:
+                        assignment_grades[assignment.title] = "-"
+                except Grade.DoesNotExist:  # type: ignore
+                    assignment_grades[assignment.title] = "-"
+            
+            # Calculate overall grade and letter grade
+            total_grade = 0
+            letter_grade = "N/A"
+            if total_points > 0:
+                total_grade = (earned_points / total_points) * 100
+                # Calculate letter grade
+                if total_grade >= 93:
+                    letter_grade = "A"
+                elif total_grade >= 90:
+                    letter_grade = "A-"
+                elif total_grade >= 87:
+                    letter_grade = "B+"
+                elif total_grade >= 83:
+                    letter_grade = "B"
+                elif total_grade >= 80:
+                    letter_grade = "B-"
+                elif total_grade >= 77:
+                    letter_grade = "C+"
+                elif total_grade >= 73:
+                    letter_grade = "C"
+                elif total_grade >= 70:
+                    letter_grade = "C-"
+                elif total_grade >= 67:
+                    letter_grade = "D+"
+                elif total_grade >= 60:
+                    letter_grade = "D"
+                else:
+                    letter_grade = "F"
             
             student_data = {
-                'id': student.student_id,
-                'name': f"{user.first_name} {user.last_name}",
+                'id': student.id,
                 'studentId': student.student_id,
-                'assignments': assignment_grades,
-                'overallGrade': round(overall_grade, 2)
+                'studentName': f"{user.first_name} {user.last_name}",
+                'studentEmail': user.email,
+                'assignmentGrades': assignment_grades,
+                'totalGrade': round(total_grade, 1),
+                'letterGrade': letter_grade
             }
             students.append(student_data)
         
-        return JsonResponse({'students': students})
+        return JsonResponse({
+            'students': students,
+            'assignments': assignment_names,
+            'course_name': course.name
+        })
     
     except Exception as e:
         import traceback
@@ -332,7 +376,7 @@ def gradebook(request, course_id):
 
 
 @csrf_exempt
-@faculty_permission_required('grade_edit')
+@faculty_required
 def update_grade(request, grade_id):
     """Update student grade"""
     if request.method == 'PUT':
@@ -439,9 +483,13 @@ def analytics(request):
         # Get real grade distribution data
         grade_distribution_data = []
         if courses.exists():
-            # Get all grades for assignments in courses taught by this faculty
+            # Get all assignments for courses taught by this faculty
             course_ids = [course.id for course in courses]
-            grades = Grade.objects.filter(assignment__course_id__in=course_ids)  # type: ignore
+            assignments = Assignment.objects.filter(course_id__in=course_ids)  # type: ignore
+            assignment_ids = [assignment.id for assignment in assignments]
+            
+            # Get all grades for these assignments
+            grades = Grade.objects.filter(assignment_id__in=assignment_ids)  # type: ignore
             
             # Count grades by letter grade
             grade_counts = {'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0}
@@ -482,8 +530,12 @@ def analytics(request):
         course_performance = {}
         for course in courses:
             course_code = course.code
+            # Get assignments for this course
+            course_assignments = Assignment.objects.filter(course_id=course.id)  # type: ignore
+            assignment_ids = [assignment.id for assignment in course_assignments]
+            
             # Calculate performance based on actual grades for this course
-            course_grades = Grade.objects.filter(assignment__course_id=course.id)  # type: ignore
+            course_grades = Grade.objects.filter(assignment_id__in=assignment_ids)  # type: ignore
             if course_grades.exists():
                 total_points = 0
                 earned_points = 0
@@ -551,7 +603,9 @@ def analytics(request):
         # Get all grades for assignments in courses taught by this faculty
         if courses.exists():
             course_ids = [course.id for course in courses]
-            grades = Grade.objects.filter(assignment__course_id__in=course_ids)  # type: ignore
+            assignments = Assignment.objects.filter(course_id__in=course_ids)  # type: ignore
+            assignment_ids = [assignment.id for assignment in assignments]
+            grades = Grade.objects.filter(assignment_id__in=assignment_ids)  # type: ignore
             
             for grade in grades:
                 if grade.value is not None:

@@ -12,15 +12,24 @@ def faculty_required(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        # Debug logging
+        print(f"[faculty_required] Checking request for {request.path}")
+        print(f"[faculty_required] hasattr(request, 'user'): {hasattr(request, 'user')}")
+        print(f"[faculty_required] hasattr(request, 'faculty'): {hasattr(request, 'faculty')}")
+        
         # Check if user is attached to request (from middleware)
         if not hasattr(request, 'user') or not request.user:
+            print(f"[faculty_required] User not authenticated or not found")
             return JsonResponse({
                 'success': False,
                 'message': 'Authentication required'
             }, status=401)
         
+        print(f"[faculty_required] User found: {request.user.username}, role: {getattr(request.user, 'role', 'NO ROLE')}")
+        
         # Check if user has faculty role
-        if request.user.role != 'faculty':
+        if not hasattr(request.user, 'role') or request.user.role != 'faculty':
+            print(f"[faculty_required] User does not have faculty role")
             return JsonResponse({
                 'success': False,
                 'message': 'Access denied. Faculty role required.'
@@ -28,15 +37,21 @@ def faculty_required(view_func):
         
         # Check if faculty profile exists
         if not hasattr(request, 'faculty') or not request.faculty:
+            print(f"[faculty_required] Faculty profile not attached, trying to fetch...")
             try:
                 faculty_profile = Faculty.objects.get(user=request.user)
                 request.faculty = faculty_profile
+                print(f"[faculty_required] Faculty profile found: {faculty_profile.employee_id}")
             except Faculty.DoesNotExist:
+                print(f"[faculty_required] Faculty profile not found in database")
                 return JsonResponse({
                     'success': False,
                     'message': 'Faculty profile not found.'
                 }, status=403)
+        else:
+            print(f"[faculty_required] Faculty profile already attached: {request.faculty.employee_id}")
         
+        print(f"[faculty_required] Authorization successful, calling view function")
         # User is authenticated and has faculty role, proceed to view
         return view_func(request, *args, **kwargs)
     

@@ -10,11 +10,9 @@ const ROLES = [
   { id: "student", label: "Student", description: "Access courses and assignments" },
   { id: "faculty", label: "Faculty", description: "Manage classes and grades" },
   { id: "admin", label: "Department Admin", description: "Administrative control" },
-  { id: "advisor", label: "Academic Advisor", description: "Student advising" },
   { id: "library", label: "Library Staff", description: "Library management" },
   { id: "finance", label: "Finance Admin", description: "Financial management" },
   { id: "research", label: "Research Admin", description: "Research management" },
-  { id: "it-admin", label: "IT Admin", description: "System administration" },
 ];
 
 export default function LoginPage() {
@@ -128,7 +126,7 @@ export default function LoginPage() {
               <p className="text-sm text-zinc-400">Select your role to continue</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {ROLES.map((role) => (
                 <button
                   key={role.id}

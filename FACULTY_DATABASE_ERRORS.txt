@@ -1,0 +1,273 @@
+FACULTY DASHBOARD - DATABASE CONNECTION ERRORS
+============================================
+
+This document lists ALL pages in the faculty dashboard sidebar where data is NOT being fetched from the database, organized by severity.
+
+CRITICAL ISSUES (Pages Using Hardcoded/Mock Data):
+===================================================
+
+1. ANNOUNCEMENTS PAGE
+   File: frontend/src/app/faculty/announcements/page.tsx
+   Issue: Uses hardcoded announcement data (lines 43-82)
+   Missing: Database connection to fetch/create announcements
+   Required Backend Endpoint: /faculty/announcements/
+   Database Model: Alert model exists in communications/models.py but NOT connected
+   Impact: Faculty cannot create or view real announcements to students
+
+2. SCHEDULE PAGE
+   File: frontend/src/app/faculty/schedule/page.tsx
+   Issue: Uses hardcoded class session data (lines 22-53)
+   Missing: Database connection to fetch faculty schedule/timetable
+   Required Backend Endpoint: /faculty/schedule/ or /faculty/timetable/
+   Database Model: CalendarEvent exists but NOT connected for faculty schedules
+   Impact: Faculty cannot view their actual class schedule
+
+3. NOTIFICATIONS PAGE
+   File: frontend/src/app/faculty/notifications/page.tsx
+   Issue: Uses hardcoded notification data (lines 24-72)
+   Missing: Database connection to fetch faculty notifications
+   Required Backend Endpoint: /faculty/notifications/
+   Database Model: Notification model exists in communications/models.py but NOT connected
+   Impact: Faculty cannot receive or manage real system notifications
+
+4. MESSAGES/CHAT PAGE
+   File: frontend/src/app/faculty/communications/messages/page.tsx
+   Issue: Uses hardcoded contacts and messages (lines 46-126)
+   Missing: Database connection for messaging system
+   Required Backend Endpoint: /faculty/messages/ and /faculty/messages/contacts/
+   Database Model: NO messaging model exists
+   Impact: Faculty cannot send/receive messages to students or colleagues
+
+5. ADVISING OVERVIEW PAGE
+   File: frontend/src/app/faculty/advising/page.tsx
+   Issue: Uses simulated API call with hardcoded advisee data (lines 36-68)
+   Missing: Real database connection (currently uses setTimeout mock)
+   Backend Endpoint EXISTS: /faculty/advising/advisees/ (confirmed in urls.py)
+   Issue: Frontend not calling the real API endpoint
+   Impact: Faculty cannot see their actual advisees
+
+6. APPOINTMENT SCHEDULING PAGE
+   File: frontend/src/app/faculty/advising/appointments/page.tsx
+   Issue: Uses hardcoded appointment and advisee data (lines 37-147)
+   Missing: Database connection to fetch/create appointments
+   Required Backend Endpoint: /faculty/appointments/ (CRUD operations)
+   Database Model: Appointment model EXISTS in appointments/models.py but NOT connected to faculty endpoints
+   Impact: Faculty cannot schedule or manage real advising appointments
+
+7. ANALYTICS PAGE
+   File: frontend/src/app/faculty/analytics/page.tsx
+   Issue: Uses simulated API call with hardcoded analytics data (lines 44-77)
+   Missing: Real database connection (currently uses setTimeout mock)
+   Backend Endpoint EXISTS: /faculty/analytics/ (confirmed in urls.py)
+   Issue: Frontend not calling the real API endpoint
+   Impact: Faculty cannot see real analytics data
+
+8. ADMIN - TIMETABLE MANAGEMENT PAGE
+   File: frontend/src/app/faculty/admin/timetable/page.tsx
+   Issue: Uses hardcoded timetable entries (lines 40-105)
+   Missing: Database connection for department timetable management
+   Required Backend Endpoint: /faculty/admin/timetable/
+   Database Model: NO timetable model exists for course scheduling
+   Impact: Faculty admins cannot manage real course schedules
+
+9. ADMIN - STUDENT REQUESTS PAGE
+   File: frontend/src/app/faculty/admin/requests/page.tsx
+   Issue: Uses hardcoded student request data (lines 35-86)
+   Missing: Database connection for student request approval system
+   Required Backend Endpoint: /faculty/admin/requests/
+   Database Model: NO student request model exists
+   Impact: Faculty cannot approve/reject student course add/drop requests
+
+10. ADMIN - COURSES PAGE
+    File: frontend/src/app/faculty/admin/courses/page.tsx
+    Issue: Uses hardcoded department course data (lines not read yet, confirmed from previous analysis)
+    Missing: Database connection for department-wide course management
+    Required Backend Endpoint: /faculty/admin/courses/
+    Note: Different from /faculty/courses/ which shows only instructor's courses
+    Impact: Department admins cannot manage all department courses
+
+11. RESEARCH PAGE
+    File: frontend/src/app/faculty/research/page.tsx
+    Issue: Uses setTimeout mock with hardcoded research projects (lines 33-89)
+    Backend Endpoint EXISTS: /faculty/research/projects/ (confirmed in urls.py)
+    Issue: Frontend not calling the real API endpoint
+    Impact: Faculty see mock research projects instead of their actual projects
+
+12. RESEARCH - PROJECT DETAILS PAGE
+    File: frontend/src/app/faculty/research/projects/[id]/page.tsx
+    Issue: Uses hardcoded project details
+    Backend Endpoint EXISTS: /faculty/research/projects/{id}/ (confirmed in urls.py)
+    Issue: Frontend not calling the real API endpoint
+    Impact: Faculty cannot view real research project details
+
+13. PUBLICATIONS PAGE
+    File: frontend/src/app/faculty/research/publications/page.tsx
+    Issue: Uses hardcoded publication data (lines 40-75)
+    Missing: Database connection to fetch publications
+    API Functions: getFacultyPublications, createFacultyPublication exist in api.ts BUT backend endpoints DO NOT exist
+    Database Model: Publication model EXISTS in publications/models.py but NOT connected to faculty endpoints
+    Required Backend Endpoints:
+      - GET /faculty/publications/list/
+      - POST /faculty/publications/create/
+      - GET /faculty/publications/{id}/
+      - PUT /faculty/publications/{id}/update/
+      - DELETE /faculty/publications/{id}/delete/
+    Impact: Faculty cannot manage their real publications
+
+14. PROFILE - MY IUBIAN PAGE
+    File: frontend/src/app/faculty/profile/my-iubian/page.tsx
+    Issue: Uses completely hardcoded IUBian student data (lines 36-610)
+    Missing: Database connection to fetch faculty's IUBian/mentee students
+    Required Backend Endpoint: /faculty/profile/iubians/ or /faculty/mentees/
+    Database Model: Student relationships need to be tracked
+    Impact: Faculty cannot see or manage their actual IUBian students
+
+
+PAGES WITH PARTIAL IMPLEMENTATION:
+====================================
+
+15. PROFILE PAGE
+    File: frontend/src/app/faculty/profile/page.tsx
+    Issue: Profile and notification settings are managed locally (no save to backend)
+    Backend Endpoints EXIST: /faculty/profile/ and /faculty/settings/ (confirmed in urls.py)
+    Issue: handleSaveProfile and handleSaveNotifications only console.log, don't call API
+    Impact: Faculty profile and notification preferences not saved to database
+
+
+PAGES WORKING CORRECTLY:
+=========================
+
+✓ Courses List - Uses getFacultyCourses() API (backend: /faculty/courses/)
+✓ Assignments List - Uses getFacultyAssignments() API (backend: /faculty/assignments/)
+✓ Gradebook - Uses course gradebook endpoint (backend: /faculty/courses/{id}/gradebook/)
+✓ Research Grants - Uses getFacultyGrantApplications() API (backend: /faculty/grants/list/)
+✓ Research Ethics - Backend endpoints exist in ethics_views.py
+✓ Recordings - Uses getFacultyRecordings() API (backend: /faculty/recordings/)
+
+
+BACKEND ENDPOINTS THAT NEED TO BE CREATED:
+===========================================
+
+1. Announcements/Alerts System:
+   - POST /faculty/announcements/create/
+   - GET /faculty/announcements/list/
+   - PUT /faculty/announcements/{id}/update/
+   - DELETE /faculty/announcements/{id}/delete/
+   Database Model: Alert model exists in communications/models.py
+
+2. Schedule/Timetable System:
+   - GET /faculty/schedule/
+   - GET /faculty/schedule/week/ (weekly view)
+   Database Model: Need to create CourseSchedule or use CalendarEvent model
+
+3. Notifications System:
+   - GET /faculty/notifications/
+   - PUT /faculty/notifications/{id}/mark-read/
+   - DELETE /faculty/notifications/{id}/
+   Database Model: Notification model exists in communications/models.py
+
+4. Messaging System:
+   - GET /faculty/messages/
+   - GET /faculty/messages/contacts/
+   - POST /faculty/messages/send/
+   - GET /faculty/messages/conversation/{user_id}/
+   Database Model: Need to create Message and Conversation models
+
+5. Appointments System:
+   - GET /faculty/appointments/
+   - POST /faculty/appointments/create/
+   - PUT /faculty/appointments/{id}/update/
+   - DELETE /faculty/appointments/{id}/delete/
+   - PUT /faculty/appointments/{id}/status/ (complete, cancel, no-show)
+   Database Model: Appointment model EXISTS in appointments/models.py
+
+6. Department Administration:
+   - GET /faculty/admin/timetable/
+   - POST /faculty/admin/timetable/create/
+   - PUT /faculty/admin/timetable/{id}/update/
+   - DELETE /faculty/admin/timetable/{id}/delete/
+   - GET /faculty/admin/requests/ (student requests)
+   - PUT /faculty/admin/requests/{id}/approve/
+   - PUT /faculty/admin/requests/{id}/reject/
+   - GET /faculty/admin/courses/ (department-wide)
+   Database Models: Need CourseSchedule/Timetable and StudentRequest models
+
+7. Publications System:
+   - GET /faculty/publications/list/
+   - POST /faculty/publications/create/
+   - GET /faculty/publications/{id}/
+   - PUT /faculty/publications/{id}/update/
+   - DELETE /faculty/publications/{id}/delete/
+   Database Model: Publication model EXISTS in publications/models.py
+
+8. IUBian/Mentee System:
+   - GET /faculty/mentees/ or /faculty/iubians/
+   - POST /faculty/mentees/{student_id}/assign/
+   - DELETE /faculty/mentees/{student_id}/remove/
+   Database Model: Need to create Mentorship or extend Student model
+
+
+FRONTEND API FUNCTIONS THAT NEED BACKEND:
+==========================================
+
+These functions exist in frontend/src/lib/faculty/api.ts but have NO backend:
+
+1. Publication Management (lines 556-631):
+   - getFacultyPublications()
+   - getFacultyPublicationDetail()
+   - createFacultyPublication()
+   - updateFacultyPublication()
+   - deleteFacultyPublication()
+   - searchFacultyPublications()
+
+2. Ethics Management (lines 634-724):
+   - API functions call /faculty/ethics/list/ but backend has /faculty/research/ethics/
+
+Note: Ethics endpoints exist but path mismatch between frontend and backend
+
+
+SUMMARY STATISTICS:
+===================
+
+Total Faculty Dashboard Pages Analyzed: 20+
+Pages with Mock/Hardcoded Data: 14
+Pages with Partial Implementation: 1
+Pages Working Correctly: 5
+Backend Endpoints Needed: 40+
+Database Models Needed: 5 new models
+Database Models Existing but Unconnected: 3 models
+
+
+PRIORITY RECOMMENDATIONS:
+==========================
+
+HIGH PRIORITY (Core Faculty Functions):
+1. Fix Advising page to call real API endpoint (backend exists, frontend not using it)
+2. Fix Analytics page to call real API endpoint (backend exists, frontend not using it)
+3. Fix Research page to call real API endpoint (backend exists, frontend not using it)
+4. Connect Appointments system (model exists, needs backend endpoints)
+5. Connect Notifications system (model exists, needs backend endpoints)
+6. Fix Profile save functions to call real API endpoints (backend exists)
+
+MEDIUM PRIORITY (Faculty Communication):
+7. Create Announcements/Alerts backend endpoints (model exists)
+8. Create Messaging system (needs model + backend)
+9. Create Schedule/Timetable backend endpoints (needs model or use CalendarEvent)
+
+LOW PRIORITY (Administrative Functions):
+10. Create Publications backend endpoints (model exists)
+11. Create Student Requests system (needs model + backend)
+12. Create Department Timetable Management (needs model + backend)
+13. Create IUBian/Mentee system (needs model extensions + backend)
+
+
+NOTES:
+======
+
+- Many database models ALREADY EXIST but are not connected to backend endpoints
+- Some backend endpoints ALREADY EXIST but frontend is not calling them (using mock data instead)
+- The main issues are:
+  1. Missing backend endpoint implementations
+  2. Frontend pages not calling existing backend APIs
+  3. Missing API endpoint definitions in urls.py
+  4. Need to create a few new database models for features not yet implemented

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,72 +21,112 @@ interface Notification {
 }
 
 export default function FacultyNotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      title: "New Assignment Submission",
-      message: "A student has submitted an assignment for CS-301: Data Science and Machine Learning",
-      timestamp: "2023-06-15T09:30:00Z",
-      read: false,
-      type: "assignment",
-      courseId: "CS-301",
-      priority: "high"
-    },
-    {
-      id: "2",
-      title: "Department Meeting Reminder",
-      message: "Faculty meeting scheduled for tomorrow at 2:00 PM in Conference Room A",
-      timestamp: "2023-06-14T14:15:00Z",
-      read: true,
-      type: "announcement",
-      priority: "medium"
-    },
-    {
-      id: "3",
-      title: "Grading Deadline Approaching",
-      message: "Please complete grading for CS-205 assignments by end of week",
-      timestamp: "2023-06-14T10:45:00Z",
-      read: false,
-      type: "grading",
-      courseId: "CS-205",
-      priority: "high"
-    },
-    {
-      id: "4",
-      title: "Research Grant Update",
-      message: "Your research grant application has been approved",
-      timestamp: "2023-06-13T16:20:00Z",
-      read: true,
-      type: "research",
-      priority: "medium"
-    },
-    {
-      id: "5",
-      title: "System Maintenance",
-      message: "Scheduled maintenance this weekend from 12:00 AM to 4:00 AM",
-      timestamp: "2023-06-12T08:00:00Z",
-      read: true,
-      type: "system",
-      priority: "low"
-    }
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
 
-  const toggleReadStatus = (id: string) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === id ? { ...notification, read: !notification.read } : notification
-    ));
+  // Fetch notifications from API
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faculty/notifications/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch notifications');
+        }
+        
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
+        console.error('Error fetching notifications:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchNotifications();
+  }, []);
+
+  const toggleReadStatus = async (id: string) => {
+    try {
+      const notification = notifications.find(n => n.id === id);
+      if (!notification) return;
+      
+      if (!notification.read) {
+        // Mark as read
+        const response = await fetch(`/api/faculty/notifications/${id}/mark-read/`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to mark notification as read');
+        }
+      }
+      
+      setNotifications(notifications.map(n => 
+        n.id === id ? { ...n, read: !n.read } : n
+      ));
+    } catch (error) {
+      console.error('Error toggling notification status:', error);
+      alert('Failed to update notification status');
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(notification => ({ ...notification, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      const response = await fetch('/api/faculty/notifications/mark-all-read/', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to mark all notifications as read');
+      }
+      
+      setNotifications(notifications.map(notification => ({ ...notification, read: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      alert('Failed to mark all notifications as read');
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      const response = await fetch(`/api/faculty/notifications/${id}/delete/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete notification');
+      }
+      
+      setNotifications(notifications.filter(notification => notification.id !== id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      alert('Failed to delete notification');
+    }
   };
 
   const filteredNotifications = notifications.filter(notification => {

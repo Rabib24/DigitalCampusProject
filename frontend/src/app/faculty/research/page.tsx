@@ -30,45 +30,33 @@ export default function FacultyResearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // In a real implementation, we would fetch research data from an API
+  // Fetch research data from the API
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setProjects([
-        {
-          id: 1,
-          title: "Machine Learning Applications in Healthcare",
-          description: "Exploring the use of machine learning algorithms to improve diagnostic accuracy in medical imaging.",
-          status: "ongoing",
-          startDate: "2024-01-15",
-          collaborators: 3,
-          publications: 1,
-          funding: 50000
-        },
-        {
-          id: 2,
-          title: "Data Science in Education",
-          description: "Analyzing student performance data to identify factors that contribute to academic success.",
-          status: "proposal",
-          startDate: "2024-03-01",
-          collaborators: 2,
-          publications: 0,
-          funding: 25000
-        },
-        {
-          id: 3,
-          title: "Web Security Framework",
-          description: "Developing a comprehensive security framework for modern web applications.",
-          status: "completed",
-          startDate: "2023-09-01",
-          endDate: "2024-02-28",
-          collaborators: 4,
-          publications: 2,
-          funding: 75000
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faculty/research/projects/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch research projects');
         }
-      ]);
-      setLoading(false);
-    }, 500);
+        
+        const data = await response.json();
+        setProjects(data.projects || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch research projects');
+        console.error('Error fetching research projects:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProjects();
   }, []);
 
   const getStatusVariant = (status: ResearchProject["status"]) => {

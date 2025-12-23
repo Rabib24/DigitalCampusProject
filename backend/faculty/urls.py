@@ -9,6 +9,11 @@ from . import recording_views
 from . import grant_views
 from . import course_views
 from . import research_views
+from . import appointment_views
+from . import notification_views
+from . import announcement_views
+from . import schedule_views
+from . import publication_views
 
 urlpatterns = [
     # Authentication endpoints
@@ -68,6 +73,25 @@ urlpatterns = [
     path('advising/advisees/<str:student_id>/', real_advising_views.get_advisee_detail, name='faculty_advisee_detail'),
     path('advising/advisees/<str:student_id>/progress/', real_advising_views.get_academic_progress, name='faculty_advisee_progress'),
     
+    # Appointment endpoints
+    path('appointments/', appointment_views.get_appointments, name='faculty_appointments_list'),
+    path('appointments/create/', appointment_views.create_appointment, name='faculty_appointments_create'),
+    path('appointments/<str:appointment_id>/', appointment_views.update_appointment, name='faculty_appointments_update'),
+    path('appointments/<str:appointment_id>/delete/', appointment_views.delete_appointment, name='faculty_appointments_delete'),
+    path('appointments/<str:appointment_id>/status/', appointment_views.update_appointment_status, name='faculty_appointments_update_status'),
+    
+    # Notification endpoints
+    path('notifications/', notification_views.get_notifications, name='faculty_notifications_list'),
+    path('notifications/<str:notification_id>/mark-read/', notification_views.mark_notification_read, name='faculty_notifications_mark_read'),
+    path('notifications/mark-all-read/', notification_views.mark_all_notifications_read, name='faculty_notifications_mark_all_read'),
+    path('notifications/<str:notification_id>/delete/', notification_views.delete_notification, name='faculty_notifications_delete'),
+    
+    # Announcement endpoints
+    path('announcements/', announcement_views.get_announcements, name='faculty_announcements_list'),
+    path('announcements/create/', announcement_views.create_announcement, name='faculty_announcements_create'),
+    path('announcements/<str:announcement_id>/update/', announcement_views.update_announcement, name='faculty_announcements_update'),
+    path('announcements/<str:announcement_id>/delete/', announcement_views.delete_announcement, name='faculty_announcements_delete'),
+    
     # Research project endpoints
     path('research/projects/', research_views.get_research_projects, name='faculty_research_projects'),
     path('research/projects/create/', research_views.create_research_project, name='faculty_research_create'),
@@ -76,6 +100,13 @@ urlpatterns = [
     path('research/projects/<int:project_id>/delete/', research_views.delete_research_project, name='faculty_research_delete'),
     path('research/projects/<int:project_id>/publications/add/', research_views.add_publication, name='faculty_research_add_publication'),
     path('research/projects/<int:project_id>/milestones/add/', research_views.add_milestone, name='faculty_research_add_milestone'),
+    
+    # Publication endpoints
+    path('publications/', publication_views.get_publications, name='faculty_publications_list'),
+    path('publications/create/', publication_views.create_publication, name='faculty_publications_create'),
+    path('publications/<str:publication_id>/', publication_views.get_publication_detail, name='faculty_publication_detail'),
+    path('publications/<str:publication_id>/update/', publication_views.update_publication, name='faculty_publication_update'),
+    path('publications/<str:publication_id>/delete/', publication_views.delete_publication, name='faculty_publication_delete'),
     
     # Research ethics endpoints
     path('research/ethics/', ethics_views.get_ethics_applications, name='faculty_ethics_applications'),
@@ -97,6 +128,10 @@ urlpatterns = [
     
     # Analytics endpoints
     path('analytics/', views.analytics, name='faculty_analytics'),
+    
+    # Schedule endpoints
+    path('schedule/', schedule_views.get_schedule, name='faculty_schedule'),
+    path('schedule/weekly-overview/', schedule_views.get_weekly_overview, name='faculty_weekly_overview'),
     
     # Recording endpoints
     path('recordings/', recording_views.get_recordings, name='faculty_recordings'),

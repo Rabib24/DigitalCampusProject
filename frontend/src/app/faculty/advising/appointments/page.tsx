@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,68 +34,10 @@ interface Appointment {
 }
 
 export default function AppointmentSchedulingPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: "1",
-      advisee: {
-        id: "1",
-        studentId: "S123456",
-        firstName: "Alex",
-        lastName: "Johnson",
-        email: "alex.johnson@university.edu",
-        program: "Computer Science",
-        year: 3,
-        gpa: 3.75
-      },
-      date: "2023-10-20",
-      time: "14:00",
-      duration: 30,
-      type: "academic",
-      status: "scheduled",
-      notes: "Discuss course selection for next semester",
-      location: "Room 205, Building A"
-    },
-    {
-      id: "2",
-      advisee: {
-        id: "2",
-        studentId: "S123457",
-        firstName: "Sarah",
-        lastName: "Williams",
-        email: "sarah.williams@university.edu",
-        program: "Mathematics",
-        year: 2,
-        gpa: 3.92
-      },
-      date: "2023-10-20",
-      time: "15:00",
-      duration: 45,
-      type: "career",
-      status: "scheduled",
-      notes: "Internship opportunities discussion",
-      location: "Room 205, Building A"
-    },
-    {
-      id: "3",
-      advisee: {
-        id: "3",
-        studentId: "S123458",
-        firstName: "Michael",
-        lastName: "Chen",
-        email: "michael.chen@university.edu",
-        program: "Physics",
-        year: 4,
-        gpa: 3.68
-      },
-      date: "2023-10-18",
-      time: "10:30",
-      duration: 30,
-      type: "academic",
-      status: "completed",
-      notes: "Thesis progress review",
-      location: "Room 205, Building A"
-    }
-  ]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [advisees, setAdvisees] = useState<FacultyAdvisee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,41 +54,60 @@ export default function AppointmentSchedulingPage() {
     location: "Room 205, Building A"
   });
 
-  // Mock advisees data
-  const advisees: FacultyAdvisee[] = [
-    {
-      id: "1",
-      studentId: "S123456",
-      firstName: "Alex",
-      lastName: "Johnson",
-      email: "alex.johnson@university.edu",
-      program: "Computer Science",
-      year: 3,
-      gpa: 3.75
-    },
-    {
-      id: "2",
-      studentId: "S123457",
-      firstName: "Sarah",
-      lastName: "Williams",
-      email: "sarah.williams@university.edu",
-      program: "Mathematics",
-      year: 2,
-      gpa: 3.92
-    },
-    {
-      id: "3",
-      studentId: "S123458",
-      firstName: "Michael",
-      lastName: "Chen",
-      email: "michael.chen@university.edu",
-      program: "Physics",
-      year: 4,
-      gpa: 3.68
-    }
-  ];
+  // Fetch appointments and advisees from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch appointments
+        const appointmentsResponse = await fetch('/api/faculty/appointments/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (appointmentsResponse.ok) {
+          const appointmentsData = await appointmentsResponse.json();
+          setAppointments(appointmentsData.appointments || []);
+        }
+        
+        // Fetch advisees for the dropdown
+        const adviseesResponse = await fetch('/api/faculty/advising/advisees/', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (adviseesResponse.ok) {
+          const adviseesData = await adviseesResponse.json();
+          const mappedAdvisees = (adviseesData.advisees || []).map((advisee: any) => ({
+            id: advisee.id,
+            studentId: advisee.student_id,
+            firstName: advisee.first_name,
+            lastName: advisee.last_name,
+            email: advisee.email,
+            program: advisee.program || 'Unknown',
+            year: advisee.year || 0,
+            gpa: advisee.cgpa || 0
+          }));
+          setAdvisees(mappedAdvisees);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
-  const handleCreateAppointment = () => {
+  // Mock advisees data - removed as we now fetch from API
+
+  const handleCreateAppointment = async () => {
     if (!newAppointment.adviseeId || !newAppointment.date || !newAppointment.time) {
       alert("Please fill in all required fields");
       return;
@@ -158,29 +119,59 @@ export default function AppointmentSchedulingPage() {
       return;
     }
 
-    const appointment: Appointment = {
-      id: (appointments.length + 1).toString(),
-      advisee: selectedAdvisee,
-      date: newAppointment.date,
-      time: newAppointment.time,
-      duration: newAppointment.duration,
-      type: newAppointment.type,
-      status: "scheduled",
-      notes: newAppointment.notes,
-      location: newAppointment.location
-    };
+    try {
+      const response = await fetch('/api/faculty/appointments/create/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          student_id: newAppointment.adviseeId,
+          date: newAppointment.date,
+          time: newAppointment.time,
+          duration: newAppointment.duration,
+          title: `${newAppointment.type} appointment`,
+          notes: newAppointment.notes,
+          location: newAppointment.location
+        })
+      });
 
-    setAppointments([appointment, ...appointments]);
-    setNewAppointment({
-      adviseeId: "",
-      date: "",
-      time: "",
-      duration: 30,
-      type: "academic",
-      notes: "",
-      location: "Room 205, Building A"
-    });
-    setIsCreating(false);
+      if (!response.ok) {
+        throw new Error('Failed to create appointment');
+      }
+
+      const data = await response.json();
+      
+      // Add the new appointment to the list
+      const newAppt: Appointment = {
+        id: data.appointment.id,
+        advisee: selectedAdvisee,
+        date: newAppointment.date,
+        time: newAppointment.time,
+        duration: newAppointment.duration,
+        type: newAppointment.type,
+        status: "scheduled",
+        notes: newAppointment.notes,
+        location: newAppointment.location
+      };
+      
+      setAppointments([newAppt, ...appointments]);
+      setNewAppointment({
+        adviseeId: "",
+        date: "",
+        time: "",
+        duration: 30,
+        type: "academic",
+        notes: "",
+        location: "Room 205, Building A"
+      });
+      setIsCreating(false);
+      alert('Appointment created successfully!');
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      alert('Failed to create appointment. Please try again.');
+    }
   };
 
   const getStatusVariant = (status: string) => {
@@ -212,15 +203,52 @@ export default function AppointmentSchedulingPage() {
     }
   };
 
-  const handleUpdateStatus = (id: string, status: Appointment["status"]) => {
-    setAppointments(appointments.map(app => 
-      app.id === id ? { ...app, status } : app
-    ));
+  const handleUpdateStatus = async (id: string, status: Appointment["status"]) => {
+    try {
+      const response = await fetch(`/api/faculty/appointments/${id}/status/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update appointment status');
+      }
+
+      setAppointments(appointments.map(app => 
+        app.id === id ? { ...app, status } : app
+      ));
+      alert(`Appointment ${status} successfully!`);
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      alert('Failed to update appointment status. Please try again.');
+    }
   };
 
-  const handleDeleteAppointment = (id: string) => {
+  const handleDeleteAppointment = async (id: string) => {
     if (confirm("Are you sure you want to delete this appointment?")) {
-      setAppointments(appointments.filter(app => app.id !== id));
+      try {
+        const response = await fetch(`/api/faculty/appointments/${id}/delete/`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete appointment');
+        }
+
+        setAppointments(appointments.filter(app => app.id !== id));
+        alert('Appointment deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting appointment:', error);
+        alert('Failed to delete appointment. Please try again.');
+      }
     }
   };
 
